@@ -6,7 +6,7 @@
 using namespace std;
 string varRegex = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
 string integerRegex = "\\s{0,}([0-9]{1,})\\s{0,}";
-string paranRegex = "(\\(.{1,}\\))";
+string paranRegex = "\\((?:[^)(]*?)*+\\)";
 string termRegex = "(.*[\\*\\/]{1,1})+.*";
 string muldivRegex = "[\\*|\\/]{1,1}";
 
@@ -17,7 +17,11 @@ regex term(termRegex);
 regex addsub("[+-]");
 regex muldiv(muldivRegex);
 regex equals("=");
-
+regex whileR("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
+regex ifR("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
+regex printR("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
+regex curvedParanclose("\\s{0,}\\}\\s{0,}");
+regex choose("choose(\\(([a-zA-Z0-9+-*/]{1,},){3,3}[a-zA-Z0-9+-*/]{1,}\\))");
 bool isVariable(string s)
 {
     return regex_match(s, var);
@@ -82,17 +86,41 @@ bool checkBetweenparenthesis(string s)
 bool eliminateParenthesis(string &s)
 {
     smatch m;
-    string regex = "\\((?:[^)(]*?)*+\\)";
-    std::regex e(regex);
     int index = 0;
-    string replacement = "temp";
-    while (std::regex_search(s, m, e))
+    string replacement = " temp";
+    while (std::regex_search(s, m, parenthesis))
     {
         for (auto x : m)
         {
             string xx = x;
             if (checkBetweenparenthesis(xx)){
-            string rep = replacement + to_string(index);
+            string rep = replacement + to_string(index) + " ";
+            findAndReplace(s, xx, rep);
+            index += 1;
+            }
+            else return false;
+        }
+        // cout << "parenthesis eliminated" << endl;
+        // cout << s << endl;
+        // std::cout << std::endl;
+    }
+    return true;
+}
+bool isValidChoose(string s){
+     bool isparenthesis = regex_match(s, choose);
+}
+bool eliminateChoose(string &s)
+{
+    smatch m;
+    int index = 0;
+    string replacement = " tempChoose";
+    while (std::regex_search(s, m, parenthesis))
+    {
+        for (auto x : m)
+        {
+            string xx = x;
+            if (isValidChoose(xx)){
+            string rep = replacement + to_string(index) + " ";
             findAndReplace(s, xx, rep);
             index += 1;
             }
@@ -139,4 +167,37 @@ bool isAssign(string s)
         return var && expr;
     }
     return false;
+}
+
+bool isWhile(string s){
+    bool syntax = regex_match(s, whileR);
+    if(!syntax) return false;
+    int beginString = s.find("("); 
+    int endString = s.find(")"); 
+    return isExpr(s.substr(beginString+1, endString - beginString -1));
+}
+bool isIf(string s){
+    bool syntax = regex_match(s, ifR);
+    if(!syntax) return false;
+    int beginString = s.find("("); 
+    int endString = s.find(")"); 
+    return isExpr(s.substr(beginString+1, endString - beginString -1));
+}
+bool isCurvParanClose(string s){
+    return regex_match(s, curvedParanclose);
+}
+bool isPrint(string s){
+    bool syntax = regex_match(s,printR);
+    if(!syntax) return false;
+    int beginString = s.find("("); 
+    int endString = s.find(")"); 
+    return isExpr(s.substr(beginString+1, endString - beginString -1));
+}
+string getType(string s){
+    if(isCurvParanClose(s)) return "curv paran close";
+    if(isWhile(s)) return "while begin";
+    if(isIf(s)) return "if";
+    if(isPrint(s)) return "print";
+    if(isAssign(s)) return "assignment";
+    return " syntax error";
 }
