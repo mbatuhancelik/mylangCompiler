@@ -32,18 +32,11 @@ bool isFactor(string s)
     bool isVar = isVariable(s);
     if (isVar)
         return true;
-    bool isparenthesis = regex_match(s, parenthesis);
-    if (isparenthesis)
-        if (isExpr(s.substr(1, s.length() - 2)))
-            return true;
     return false;
 }
 
 bool isTerm(string s)
 {
-    if (isFactor(s))
-        return true;
-
     smatch m;
     bool multi = regex_match(s, term);
 
@@ -54,15 +47,18 @@ bool isTerm(string s)
         bool factor = isFactor(m.prefix());
         return term && factor;
     }
+    if (isFactor(s))
+        return true;
     return false;
 }
 void findAndReplace(string &s, string &toReplace, string &replacement)
 {
     size_t index = 0;
-    while (true)
+    index = s.find(toReplace, index);
+    while (index!= -1)
     {
         /* Locate the substring to replace. */
-        index = s.find(toReplace, index);
+        // index = s.find(toReplace, index);
         if (index == std::string::npos)
             break;
 
@@ -70,7 +66,8 @@ void findAndReplace(string &s, string &toReplace, string &replacement)
         s.replace(index, toReplace.length(), replacement);
 
         /* Advance index forward so the next iteration doesn't pick it up as well. */
-        index += replacement.length();
+        // index += replacement.length();
+        index = s.find(toReplace, index);
     }
 }
 bool checkBetweenparenthesis(string s)
