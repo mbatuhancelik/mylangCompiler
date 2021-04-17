@@ -6,7 +6,7 @@
 using namespace std;
 string varRegex = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
 string integerRegex = "\\s{0,}([0-9]{1,})\\s{0,}";
-string paranRegex = "\\((?:[^)(]*?)*+\\)";
+string paranRegex = "\\((?:[^)(,]*?)*+\\)";
 string termRegex = "(.*[\\*\\/]{1,1})+.*";
 string muldivRegex = "[\\*|\\/]{1,1}";
 
@@ -94,6 +94,7 @@ bool eliminateParenthesis(string &s)
         for (auto x : m)
         {
             string xx = x;
+            
             if (checkBetweenparenthesis(xx)){
             string rep = replacement + to_string(index) + " ";
             findAndReplace(s, xx, rep);
@@ -111,7 +112,6 @@ bool isValidChoose(string s){
     //choose(exp1,exp2,exp3,exp4)
     s = s.substr(7,s.length()-8);
     s += ",";
-    return true;
     smatch m;
     while (std::regex_search(s, m, comma) && s.length() != 1){
         if(!isExpr(m.prefix()))
@@ -124,12 +124,13 @@ bool eliminateChoose(string &s)
 {
     smatch m;
     int index = 0;
-    string replacement = " tempChoose";
+    string replacement = " tempc";
     while (std::regex_search(s, m, choose))
     {
         for (auto x : m)
         {
             string xx = x;
+            
             if (isValidChoose(xx)){
             string rep = replacement + to_string(index) + " ";
             findAndReplace(s, xx, rep);
@@ -148,6 +149,8 @@ bool isExpr(string s)
     // if(s.empty())
     // return false;
     // cout << s<< endl;
+    bool validChoose = eliminateChoose(s);
+    if(!validChoose) return false;
     bool validParenthesis = eliminateParenthesis(s);
     if(!validParenthesis) return false;
     // cout << s << endl;
