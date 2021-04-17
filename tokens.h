@@ -23,4 +23,6 @@ bool isPrint(string s);
 // returns type of a line
 string getType(string s);
 
+bool isValidChoose(string s);
+
 #endif

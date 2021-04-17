@@ -21,7 +21,8 @@ regex whileR("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
 regex ifR("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
 regex printR("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex curvedParanclose("\\s{0,}\\}\\s{0,}");
-regex choose("choose(\\(([a-zA-Z0-9+-*/]{1,},){3,3}[a-zA-Z0-9+-*/]{1,}\\))");
+regex choose("choose\\((([a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]{1,})\\)");
+regex comma(",");
 bool isVariable(string s)
 {
     return regex_match(s, var);
@@ -107,14 +108,24 @@ bool eliminateParenthesis(string &s)
     return true;
 }
 bool isValidChoose(string s){
-     bool isparenthesis = regex_match(s, choose);
+    //choose(exp1,exp2,exp3,exp4)
+    s = s.substr(7,s.length()-8);
+    s += ",";
+    return true;
+    smatch m;
+    while (std::regex_search(s, m, comma) && s.length() != 1){
+        if(!isExpr(m.prefix()))
+            return false;
+        s = m.suffix();
+    }
+    return true;
 }
 bool eliminateChoose(string &s)
 {
     smatch m;
     int index = 0;
     string replacement = " tempChoose";
-    while (std::regex_search(s, m, parenthesis))
+    while (std::regex_search(s, m, choose))
     {
         for (auto x : m)
         {
