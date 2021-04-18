@@ -32,10 +32,15 @@ bool isValidVariable(string s){
     return regex_match(s, varRegex);
 
 }
+bool isValidInteger(string s){
+
+    return regex_match(s, integerRegex);
+
+}
 
 bool isValidFactor(string s){
 
-    bool isNumber = regex_match(s, integerRegex);
+    bool isNumber = isValidInteger(s);
     if (isNumber)
         return true;
 
@@ -264,7 +269,7 @@ bool isValidPrint(string s){
 
 string getType(string s){
 
-    if(isCurvParanClose(s)) return "curvClose";
+    if(isCurvParanClose(s)) return "curv";
     if(isValidWhile(s)) return "while";
     if(isValidIf(s)) return "if";
     if(isValidPrint(s)) return "print";
