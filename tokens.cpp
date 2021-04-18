@@ -4,66 +4,73 @@
 #include <iostream>
 
 using namespace std;
-string varRegex = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
-string integerRegex = "\\s{0,}([0-9]{1,})\\s{0,}";
-string paranRegex = "\\((?:[^)(,]*?)*+\\)";
-string termRegex = "(.*[\\*\\/]{1,1})+.*";
-string muldivRegex = "[\\*|\\/]{1,1}";
 
-regex var(varRegex);
-regex integer(integerRegex);
-regex parenthesis(paranRegex);
-regex term(termRegex);
-regex addsub("[+-]");
-regex muldiv(muldivRegex);
-regex equals("=");
-regex whileR("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
-regex ifR("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
-regex printR("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
-regex curvedParanclose("\\s{0,}\\}\\s{0,}");
-regex choose("choose\\((([a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,}[a-zA-Z0-9+\\*\\-\\/\\s()]{1,})\\)");
-regex comma(",");
-bool isVariable(string s)
-{
-    return regex_match(s, var);
+string varRegexStr = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
+string intRegexStr = "\\s{0,}([0-9]{1,})\\s{0,}";
+string paranRegexStr = "\\((?:[^)(,]*?)*+\\)";
+string termRegexStr = "(.*[\\*\\/]{1,1})+.*";
+string multdivRegexStr = "[\\*|\\/]{1,1}";
+
+regex varRegex(varRegexStr);
+regex integerRegex(intRegexStr);
+regex parenthesisRegex(paranRegexStr);
+regex termRegex(termRegexStr);
+regex addsubRegex("[+-]");
+regex multdivRegex(multdivRegexStr);
+regex equalsRegex("=");
+regex whileRegex("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
+regex ifRegex("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
+regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
+regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
+regex chooseRegex("choose\\(((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,3}(?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()]{1,}\\)");
+regex commaRegex(",");
+
+bool isValidExpression(string s);
+
+bool isValidVariable(string s){
+
+    return regex_match(s, varRegex);
+
 }
 
-bool isFactor(string s)
-{
-    bool isNumber = regex_match(s, integer);
+bool isValidFactor(string s){
+
+    bool isNumber = regex_match(s, integerRegex);
     if (isNumber)
         return true;
 
-    bool isVar = isVariable(s);
+    bool isVar = isValidVariable(s);
     if (isVar)
         return true;
     return false;
+
 }
 
-bool isTerm(string s)
-{
-    smatch m;
-    bool multi = regex_match(s, term);
+bool isValidTerm(string s){
 
-    if (multi)
-    {
-        regex_search(s, m, muldiv);
-        bool term = isTerm(m.suffix());
-        bool factor = isFactor(m.prefix());
-        return term && factor;
+    smatch m;
+    bool multi = regex_match(s, termRegex);
+
+    if (multi){
+        regex_search(s, m, multdivRegex);
+        bool isTerm = isValidTerm(m.suffix());
+        bool isFacto = isValidFactor(m.prefix());
+        return isTerm && isFactor;
     }
-    if (isFactor(s))
+
+    if (isValidFactor(s))
         return true;
     return false;
+
 }
-void findAndReplace(string &s, string &toReplace, string &replacement)
-{
+
+void findAndReplace(string &s, string &toReplace, string &replacement){
+
     size_t index = 0;
     index = s.find(toReplace, index);
-    while (index!= -1)
-    {
+    while (index!= -1){
+
         /* Locate the substring to replace. */
-        // index = s.find(toReplace, index);
         if (index == std::string::npos)
             break;
 
@@ -71,71 +78,71 @@ void findAndReplace(string &s, string &toReplace, string &replacement)
         s.replace(index, toReplace.length(), replacement);
 
         /* Advance index forward so the next iteration doesn't pick it up as well. */
-        // index += replacement.length();
         index = s.find(toReplace, index);
+
     }
+
 }
-bool checkBetweenparenthesis(string s)
-{
-    bool isparenthesis = regex_match(s, parenthesis);
+
+bool checkBetweenParenthesis(string s){
+
+    bool isparenthesis = regex_match(s, parenthesisRegex);
     if (isparenthesis)
-        return (isExpr(s.substr(1, s.length() - 2)));
-    
-    cout << "checking between parenthesis without parenthesis\n";
+        return (isValidExpression(s.substr(1, s.length() - 2)));
     return false;
+
 }
-bool eliminateParenthesis(string &s)
-{
+
+bool removeParenthesis(string &s){
+
     smatch m;
     int index = 0;
     string replacement = " temp";
-    while (std::regex_search(s, m, parenthesis))
-    {
-        for (auto x : m)
-        {
+
+    while (std::regex_search(s, m, parenthesisRegex)){
+
+        for (auto x : m){
+
             string xx = x;
             
-            if (checkBetweenparenthesis(xx)){
+            if (checkBetweenParenthesis(xx)){
             string rep = replacement + to_string(index) + " ";
             findAndReplace(s, xx, rep);
             index += 1;
             }
             else return false;
         }
-        // cout << "parenthesis eliminated" << endl;
-        // cout << s << endl;
-        // std::cout << std::endl;
+
     }
+
     return true;
+
 }
+
 bool isValidChoose(string s){
-    //choose(exp1,exp2,exp3,exp4)
+
     s = s.substr(7,s.length()-8);
     s += ",";
+
     smatch m;
-    while (std::regex_search(s, m, comma) && s.length() != 1){
-        if(!isExpr(m.prefix()))
+    while (std::regex_search(s, m, commaRegex) && s.length() != 1){
+
+        if(!isValidExpression(m.prefix()))
             return false;
         s = m.suffix();
+
     }
+
     return true;
+
 }
-bool eliminateChoose(string &s)
-{
+
+bool removeChoose(string &s){
+
     smatch m;
     int index = 0;
-    while (std::regex_search(s, m, choose))
-    {
 
-    	cout << m.size() << endl;
-    	
-    	for(int i = 0; i < m.size(); i++){
-
-    		cout << m[i] << endl;
-
-    	}
-
-    	cout << endl;
+    while (std::regex_search(s, m, chooseRegex)){
 
         string xx = m[0].str();
 
@@ -160,111 +167,108 @@ bool eliminateChoose(string &s)
 
         }
 
-        cout << xx << endl;
-            
         if (isValidChoose(xx)){
 
 			string rep = " tempc" + to_string(index) + " ";
 			findAndReplace(s, xx, rep);
-
-			cout << s << endl;
 
 			index += 1;
         }
 
         else return false;
 
-    	/*
-
-        for (auto x : m)
-        {
-
-        	
-        }
-
-        */
-
-        // cout << "parenthesis eliminated" << endl;
-        // cout << s << endl;
-        // std::cout << std::endl;
     }
-    return true;
-}
-bool isExpr(string s)
-{
 
-    // if(s.empty())
-    // return false;
-    // cout << s<< endl;
-    bool validChoose = eliminateChoose(s);
+    return true;
+
+}
+
+bool isValidExpression(string s){
+
+    bool validChoose = removeChoose(s);
 
     if(!validChoose) return false;
 
-    
-
-    bool validParenthesis = eliminateParenthesis(s);
+    bool validParenthesis = removeParenthesis(s);
 
     if(!validParenthesis) return false;
 
-    // cout << s << endl;
-    if (isTerm(s))
+    if (isValidTerm(s))
         return true;
 
     smatch m;
-    bool multi = regex_search(s, m, addsub);
+    bool multi = regex_search(s, m, addsubRegex);
     if (multi)
     {
-        bool expr = isExpr(m.suffix());
-        bool term = isTerm(m.prefix());
-        return term && expr;
+        bool isExpression = isValidExpression(m.suffix());
+        bool isTerm = isValidTerm(m.prefix());
+        return isTerm && isExpression;
     }
+
     return false;
+
 }
 
-bool isAssign(string s)
-{
+bool isValidAssignment(string s){
     smatch m;
-    bool multi = regex_search(s, m, equals);
-    // cout << m.suffix() << endl;
-    // cout << m.prefix() << endl;
+    bool multi = regex_search(s, m, equalsRegex);
+
     if (multi)
     {
-        bool expr = isExpr(m.suffix());
-        bool var = isTerm(m.prefix());
+        bool expr = isValidExpression(m.suffix());
+        bool var = isValidTerm(m.prefix());
         return var && expr;
     }
+
     return false;
+
 }
 
-bool isWhile(string s){
-    bool syntax = regex_match(s, whileR);
+bool isValidWhile(string s){
+
+    bool syntax = regex_match(s, whileRegex);
     if(!syntax) return false;
-    int beginString = s.find("("); 
-    int endString = s.find(")"); 
-    return isExpr(s.substr(beginString+1, endString - beginString -1));
+    int beginString = s.find_first_of("(");
+    int endString = s.find_last_of(")");
+
+    return isValidExpression(s.substr(beginString+1, endString - beginString -1));
+
 }
-bool isIf(string s){
-    bool syntax = regex_match(s, ifR);
+
+bool isValidIf(string s){
+
+    bool syntax = regex_match(s, ifRegex);
     if(!syntax) return false;
-    int beginString = s.find("("); 
-    int endString = s.find(")"); 
-    return isExpr(s.substr(beginString+1, endString - beginString -1));
+    int beginString = s.find_first_of("(");
+    int endString = s.find_last_of(")");
+
+    return isValidExpression(s.substr(beginString+1, endString - beginString -1));
+
 }
+
 bool isCurvParanClose(string s){
-    return regex_match(s, curvedParanclose);
+
+    return regex_match(s, closeCurvedParanRegex);
+
 }
-bool isPrint(string s){
-    bool syntax = regex_match(s,printR);
+
+bool isValidPrint(string s){
+
+    bool syntax = regex_match(s,printRegex);
     if(!syntax) return false;
-    int beginString = s.find("("); 
-    int endString = s.find(")"); 
-    return isExpr(s.substr(beginString+1, endString - beginString -1));
+    int beginString = s.find_first_of("(");
+    int endString = s.find_last_of(")");
+    return isValidExpression(s.substr(beginString+1, endString - beginString -1));
+
 }
+
 string getType(string s){
+
     if(isCurvParanClose(s)) return "curv paran close";
-    if(isWhile(s)) return "while begin";
-    if(isIf(s)) return "if";
-    if(isPrint(s)) return "print";
-    if(isAssign(s)) return "assignment";
+    if(isValidWhile(s)) return "while begin";
+    if(isValidIf(s)) return "if";
+    if(isValidPrint(s)) return "print";
+    if(isValidAssignment(s)) return "assignment";
     return " syntax error";
+
 }
