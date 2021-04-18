@@ -54,7 +54,7 @@ bool isValidTerm(string s){
     if (multi){
         regex_search(s, m, multdivRegex);
         bool isTerm = isValidTerm(m.suffix());
-        bool isFacto = isValidFactor(m.prefix());
+        bool isFactor = isValidFactor(m.prefix());
         return isTerm && isFactor;
     }
 
