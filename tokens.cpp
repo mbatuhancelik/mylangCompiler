@@ -264,11 +264,11 @@ bool isValidPrint(string s){
 
 string getType(string s){
 
-    if(isCurvParanClose(s)) return "curv paran close";
-    if(isValidWhile(s)) return "while begin";
+    if(isCurvParanClose(s)) return "curvClose";
+    if(isValidWhile(s)) return "while";
     if(isValidIf(s)) return "if";
     if(isValidPrint(s)) return "print";
     if(isValidAssignment(s)) return "assignment";
-    return " syntax error";
+    return "syntax error";
 
 }
