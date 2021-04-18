@@ -21,7 +21,7 @@ regex whileR("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
 regex ifR("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
 regex printR("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex curvedParanclose("\\s{0,}\\}\\s{0,}");
-regex choose("choose\\((([a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]{1,})\\)");
+regex choose("choose\\((([a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,}[a-zA-Z0-9+\\*\\-\\/\\s()]{1,})\\)");
 regex comma(",");
 bool isVariable(string s)
 {
@@ -124,20 +124,66 @@ bool eliminateChoose(string &s)
 {
     smatch m;
     int index = 0;
-    string replacement = " tempc";
     while (std::regex_search(s, m, choose))
     {
+
+    	cout << m.size() << endl;
+    	
+    	for(int i = 0; i < m.size(); i++){
+
+    		cout << m[i] << endl;
+
+    	}
+
+    	cout << endl;
+
+        string xx = m[0].str();
+
+        int parantval = 0;
+
+        for(int i = 0; i < xx.size(); i++){
+
+        	if(xx[i] == '(') parantval++;
+        	else if(xx[i] == ')') parantval--;
+
+        }
+
+        while(parantval < 0){
+
+        	xx = xx.substr(0, xx.size()-1);
+
+        	int lastindex = xx.find_last_of(')');
+
+        	xx = xx.substr(0, lastindex + 1);
+
+        	parantval++;
+
+        }
+
+        cout << xx << endl;
+            
+        if (isValidChoose(xx)){
+
+			string rep = " tempc" + to_string(index) + " ";
+			findAndReplace(s, xx, rep);
+
+			cout << s << endl;
+
+			index += 1;
+        }
+
+        else return false;
+
+    	/*
+
         for (auto x : m)
         {
-            string xx = x;
-            
-            if (isValidChoose(xx)){
-            string rep = replacement + to_string(index) + " ";
-            findAndReplace(s, xx, rep);
-            index += 1;
-            }
-            else return false;
+
+        	
         }
+
+        */
+
         // cout << "parenthesis eliminated" << endl;
         // cout << s << endl;
         // std::cout << std::endl;
@@ -146,13 +192,20 @@ bool eliminateChoose(string &s)
 }
 bool isExpr(string s)
 {
+
     // if(s.empty())
     // return false;
     // cout << s<< endl;
     bool validChoose = eliminateChoose(s);
+
     if(!validChoose) return false;
+
+    
+
     bool validParenthesis = eliminateParenthesis(s);
+
     if(!validParenthesis) return false;
+
     // cout << s << endl;
     if (isTerm(s))
         return true;

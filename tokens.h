@@ -7,6 +7,10 @@ using namespace std;
 
 // three commented functions bellow does not work with paranthesis
 //yet, paranthesis are eliminated in isExpr method so overall result is true!
+
+bool isValidChoose(string s);
+bool eliminateChoose(string &s);
+
 // bool isVariable(string s);
 // bool isFactor(string s);
 // bool isTerm(string s);
