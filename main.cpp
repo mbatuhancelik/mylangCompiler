@@ -1,9 +1,3 @@
-#include <iostream>
-#include <regex>
-#include <string>
-#include "tokens.h"
-#include <fstream>
-#include "printer.h"
 #include "compiler.h"
 #include <algorithm>
 using namespace std;
@@ -24,7 +18,7 @@ int main()
             c.compileAssignment(reading);
         }
         if(type == "if"){
-            c.compileAssignment(reading);
+            c.compileIf(reading);
         }
         if(type == "print"){
             c.compilePrint(reading);

@@ -2,7 +2,7 @@
 #include <string>
 #include <regex>
 #include <iostream>
-
+#include "utilities.h"
 using namespace std;
 
 string varRegexStr = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
@@ -22,7 +22,6 @@ regex whileRegex("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
 regex ifRegex("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
 regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
-regex chooseRegex("choose\\(((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()]{1,},){3,3}(?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()]{1,}\\)");
 regex commaRegex(",");
 
 bool isValidExpression(string s);
@@ -69,26 +68,6 @@ bool isValidTerm(string s){
 
 }
 
-void findAndReplace(string &s, string &toReplace, string &replacement){
-
-    size_t index = 0;
-    index = s.find(toReplace, index);
-    while (index!= -1){
-
-        /* Locate the substring to replace. */
-        if (index == std::string::npos)
-            break;
-
-        /* Make the replacement. */
-        s.replace(index, toReplace.length(), replacement);
-
-        /* Advance index forward so the next iteration doesn't pick it up as well. */
-        index = s.find(toReplace, index);
-
-    }
-
-}
-
 bool checkBetweenParenthesis(string s){
 
     bool isparenthesis = regex_match(s, parenthesisRegex);
@@ -119,9 +98,7 @@ bool removeParenthesis(string &s){
         }
 
     }
-
     return true;
-
 }
 
 bool isValidChoose(string s){
@@ -141,7 +118,7 @@ bool isValidChoose(string s){
     return true;
 
 }
-
+// removes syntatically correct chooses
 bool removeChoose(string &s){
 
     smatch m;
@@ -152,26 +129,29 @@ bool removeChoose(string &s){
         string xx = m[0].str();
 
         int parantval = 0;
+        for(int i = 0; i < m.size(); i++){
 
+        	cout << m[i] << endl;
+
+        }
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
         	else if(xx[i] == ')') parantval--;
 
         }
+        int index = s.find(xx);
+        while(parantval > 0){
+            int len = xx.length();
+        	string temp = s.substr(index+len);
 
-        while(parantval < 0){
+            int t = temp.find_first_of(")");
 
-        	xx = xx.substr(0, xx.size()-1);
-
-        	int lastindex = xx.find_last_of(')');
-
-        	xx = xx.substr(0, lastindex + 1);
-
-        	parantval++;
+            xx += temp.substr(0,t+1);
+            parantval -- ;
 
         }
-
+        // find xx
         if (isValidChoose(xx)){
 
 			string rep = " tempc" + to_string(index) + " ";

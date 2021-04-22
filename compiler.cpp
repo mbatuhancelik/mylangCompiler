@@ -1,17 +1,11 @@
-#include <fstream>
-#include <string>
-#include "infixtopostfix.h"
-#include "tokens.h"
 #include <stack>
-#include <sstream>
-#include <unordered_map>
-#include <fstream>
 #include "compiler.h"
-#include "printer.h"
 #include <algorithm>
+#include "utilities.h"
+#include "infixtopostfix.h"
 using namespace std;
 
-
+extern regex chooseRegex;
 Compiler::Compiler (Printer &p):p{p}{
     this->pointers = 0;
     this->variables = 0;
@@ -52,11 +46,14 @@ bool Compiler::compileAssignment(string s){
 
 string Compiler::compileExpression(string s){
     // TODO: handle chooses
+    replaceChoose(s);
+
     s = infixtopostfix(s);
 
     stack<string> var;
 
     string token= "";
+    // a+%c
     stringstream tokenizer(s);
 
     while(tokenizer >> token){
@@ -72,13 +69,6 @@ string Compiler::compileExpression(string s){
 
             firstoperand = var.top();
             var.pop();
-
-            // if(isValidVariable(firstoperand)){
-            //     firstoperand = loadPoint(firstoperand);
-            // }
-            // if(isValidVariable(secondoperand)){
-            //     secondoperand = loadPoint(secondoperand);
-            // }
 
             if(token[0] == '+' ){
                 string temp = this->getTemp();
@@ -142,6 +132,28 @@ bool Compiler::compileWhile(string s){
     return true;
 
 }
+bool Compiler::compileIf(string s){
+    if(this->inIf || this->inWhile)
+        return false;
+    this->inIf = true;
+    string ifcond = "ifcond" + to_string( this->ifs);
+    string ifbody = "ifbody" + to_string( this->ifs);
+    this->p.print("br label %" + ifcond);
+    this->p.print("");
+    this->p.print(ifcond + ":");
+    this->p.print("");
+
+    s = s.substr(6,s.length()-8);
+    string exp = this->compileExpression(s);
+    string temp = this->getTemp();
+    this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
+    this->p.print("");
+    this->p.print("br i1 " + temp +", label %" +ifbody + ", label %whend" +to_string( this->ifs));
+    this->p.print("");
+    this->p.print(ifbody + ":");
+    return true;
+
+}
 bool Compiler::compileCurv(string s){
     if(!(this->inIf || this->inWhile))
     return false;
@@ -160,4 +172,101 @@ bool Compiler::compileCurv(string s){
 }
 void Compiler::finalize(){
     this->p.finalize(this->variableMap);
+}
+
+void Compiler::replaceChoose(string &s){
+
+    smatch m;
+    int index = 0;
+
+    while (regex_search(s, m, chooseRegex)){
+
+        string xx = m[0].str();
+
+        int parantval = 0;
+        for(int i = 0; i < m.size(); i++){
+
+        	cout << m[i] << endl;
+
+        }
+        for(int i = 0; i < xx.size(); i++){
+
+        	if(xx[i] == '(') parantval++;
+        	else if(xx[i] == ')') parantval--;
+
+        }
+        int index = s.find(xx);
+        while(parantval > 0){
+            int len = xx.length();
+        	string temp = s.substr(index+len);
+
+            int t = temp.find_first_of(")");
+
+            xx += temp.substr(0,t+1);
+            parantval -- ;
+
+        }
+        // find xx
+        string comp = compileChoose(xx);
+
+        findAndReplace(s , xx , comp);
+
+    }
+}
+//compiles chooseses but does not compile nested chooses
+string Compiler::compileChoose(string s){
+    s = s.substr(6); // 6 is index of first (
+    s=s.substr(0,s.length() -1);
+    
+    int comma = s.find_first_of(",");
+    string expr1 = s.substr(0,comma);
+    s= s.substr(comma+1);
+    comma = s.find_first_of(",");
+    string expr2 = s.substr(0,comma);
+    s= s.substr(comma+1);
+    comma = s.find_first_of(",");
+    string expr3 = s.substr(0,comma);
+
+    string expr4 = s.substr(comma+1);
+
+    expr1 = compileExpression(expr1);
+    string g = "%cb" + to_string(this->chooseVariables++);
+    string l = "%cb" + to_string(this->chooseVariables++);
+    string result = "%c" + to_string(this->chooses);
+    string glabel = "chooseG" + to_string(this->chooses);
+    string lelabel = "chooseLE" + to_string(this->chooses);
+    string llabel = "chooseL" + to_string(this->chooses);
+    string elabel = "chooseE" + to_string(this->chooses);
+    string endlabel = "chooseend" + to_string(this->chooses);
+    this->p.print(g +" = icmp sgt i32 " + expr1 + " , 0");
+    this->p.print(l + " = icmp slt i32 " + expr1 + " , 0");
+
+   this->p.print("br i1 " + g +", label %" + glabel + ", label %" +lelabel);
+
+    this->p.print(glabel + ":");
+
+    expr3 = compileExpression(expr3);
+
+    this->p.print(result + " = add i32 " + expr3 + " , 0");
+    this->p.print("br label %" + endlabel);
+
+    this->p.print(lelabel + ":");
+
+    this->p.print("br i1 " + l +", label %" + llabel + ", label %" + elabel);
+
+    this->p.print(llabel + ":");
+
+    expr4 = compileExpression(expr4);
+    this->p.print(result + " = add i32 " + expr4 + " , 0");
+    this->p.print("br label %" + endlabel);
+    
+    this->p.print(elabel + ":");
+
+    expr2 = compileExpression(expr2);
+    this->p.print(result + " = add i32 " + expr2 + " , 0");
+    this->p.print("br label %" + endlabel);
+
+    this->p.print(endlabel + ":");
+
+    return result;
 }

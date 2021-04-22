@@ -1,14 +1,11 @@
-#include <fstream>
 #include <string>
-#include "infixtopostfix.h"
 #include "tokens.h"
-#include <stack>
 #include <sstream>
 #include <unordered_map>
-#include <fstream>
 #include "printer.h"
-#if !defined(compiler)
+#ifndef compiler
 #define compiler
+
 
 class Compiler{
     private: 
@@ -16,6 +13,8 @@ class Compiler{
     int variables;
     int whiles; 
     int ifs;
+    int chooses;
+    int chooseVariables;
     bool inWhile;
     bool inIf;
     Printer &p;
@@ -29,7 +28,10 @@ class Compiler{
     string compileExpression(string s);
     void compilePrint(string s);
     bool compileWhile(string s);
+    bool compileIf(string s);
     bool compileCurv(string s);
+    string compileChoose(string s);
+    void replaceChoose(string &s);
     void finalize();
     
 };
