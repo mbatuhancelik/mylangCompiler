@@ -63,7 +63,6 @@ int main(int argc, char *argv[])
         if(type == "syntax error"){
             c.finalize(lines ,  true);
             return 0; 
-            
         }
         lines ++;
     }
