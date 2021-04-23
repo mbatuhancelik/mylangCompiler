@@ -4,6 +4,10 @@ using namespace std;
 
 int main()
 {
+    
+    //TODO remove comments
+    //TODO print syntax error
+    
     string reading = "trial.my";
 
     ifstream read(reading);
@@ -13,6 +17,7 @@ int main()
         
         string type = getType(reading);
         reading.erase(remove(reading.begin(), reading.end(), ' '), reading.end());
+        reading.erase(remove(reading.begin(), reading.end(), '\t'), reading.end());
         if(type == "assignment"){
             c.compileAssignment(reading);
         }
