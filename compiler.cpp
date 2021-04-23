@@ -147,7 +147,7 @@ bool Compiler::compileIf(string s){
     string temp = this->getTemp();
     this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
     this->p.print("");
-    this->p.print("br i1 " + temp +", label %" +ifbody + ", label %ifend" +to_string( this->ifs));
+    this->p.print("br i1 " + temp +", label %" +ifbody + ", label %whend" +to_string( this->ifs));
     this->p.print("");
     this->p.print(ifbody + ":");
     return true;
@@ -248,23 +248,23 @@ string Compiler::compileChoose(string s){
     expr3 = compileExpression(expr3);
 
     this->p.print("store i32 " + expr3 + " ,i32* " + resultPointer);
-    this->p.print("\n" + glabel + ":" + "\n");
+    this->p.print("br label %" + endlabel);
 
     this->p.print(lelabel + ":");
 
     this->p.print("br i1 " + l +", label %" + llabel + ", label %" + elabel);
 
-    this->p.print("\n" + lelabel + ":" + "\n");
+    this->p.print(llabel + ":");
 
     expr4 = compileExpression(expr4);
     this->p.print("store i32 " + expr4 + " ,i32* " + resultPointer);
-    this->p.print("\n" + llabel + ":" + "\n");
+    this->p.print("br label %" + endlabel);
     
     this->p.print(elabel + ":");
 
     expr2 = compileExpression(expr2);
     this->p.print("store i32 " + expr2 + " ,i32* " + resultPointer);
-    this->p.print("\n" + elabel + ":" + "\n");
+    this->p.print("br label %" + endlabel);
 
     this->p.print(endlabel + ":");
     this->chooses ++;
