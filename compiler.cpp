@@ -147,7 +147,7 @@ bool Compiler::compileIf(string s){
     string temp = this->getTemp();
     this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
     this->p.print("");
-    this->p.print("br i1 " + temp +", label %" +ifbody + ", label %whend" +to_string( this->ifs));
+    this->p.print("br i1 " + temp +", label %" +ifbody + ", label %ifend" +to_string( this->ifs));
     this->p.print("");
     this->p.print(ifbody + ":");
     return true;
@@ -188,6 +188,11 @@ void Compiler::replaceChoose(string &s){
         string xx = m[0].str();
 
         int parantval = 0;
+        for(int i = 0; i < m.size(); i++){
+
+        	cout << m[i] << endl;
+
+        }
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
@@ -241,32 +246,34 @@ string Compiler::compileChoose(string s){
     this->p.print(g +" = icmp sgt i32 " + expr1 + " , 0");
     this->p.print(l + " = icmp slt i32 " + expr1 + " , 0");
 
-   this->p.print("br i1 " + g +", label %" + glabel + ", label %" +lelabel);
+    this->p.print("br i1 " + g +", label %" + glabel + ", label %" +lelabel);
 
-    this->p.print(glabel + ":");
+    this->p.print("\n" + glabel + ":" + "\n");
 
     expr3 = compileExpression(expr3);
 
     this->p.print("store i32 " + expr3 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
 
-    this->p.print(lelabel + ":");
+    this->p.print("\n" + lelabel + ":" + "\n");
 
     this->p.print("br i1 " + l +", label %" + llabel + ", label %" + elabel);
 
-    this->p.print(llabel + ":");
+    this->p.print("\n" + llabel + ":" + "\n");
 
     expr4 = compileExpression(expr4);
     this->p.print("store i32 " + expr4 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
     
-    this->p.print(elabel + ":");
+    this->p.print("\n" + elabel + ":" + "\n");
 
     expr2 = compileExpression(expr2);
     this->p.print("store i32 " + expr2 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
 
-    this->p.print(endlabel + ":");
-    this->chooses ++;
+    this->p.print("\n" + endlabel + ":" + "\n");
+
+    this->chooses++;
+
     return result;
 }
