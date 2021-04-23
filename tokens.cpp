@@ -1,8 +1,6 @@
 #include "tokens.h"
-#include <string>
-#include <regex>
-#include <iostream>
 #include "utilities.h"
+
 using namespace std;
 
 string varRegexStr = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
@@ -22,6 +20,7 @@ regex whileRegex("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
 regex ifRegex("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
 regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
+regex chooseRegex("choose\\s{0,}\\(([a-zA-Z0-9+\\*\\-\\/\\s()]*,){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]*?\\)");
 regex commaRegex(",");
 
 bool isValidExpression(string s);

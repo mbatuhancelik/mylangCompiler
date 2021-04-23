@@ -1,8 +1,12 @@
-#include <string>
+#include "printer.h"
 #include "tokens.h"
+#include "infixtopostfix.h"
+#include "utilities.h"
+
+#include <string>
 #include <sstream>
 #include <unordered_map>
-#include "printer.h"
+
 #ifndef compiler
 #define compiler
 

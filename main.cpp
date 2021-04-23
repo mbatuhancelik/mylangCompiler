@@ -1,7 +1,6 @@
 #include "compiler.h"
-#include <algorithm>
-using namespace std;
 
+using namespace std;
 
 int main()
 {

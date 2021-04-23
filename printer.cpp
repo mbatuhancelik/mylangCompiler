@@ -1,7 +1,5 @@
-#include <fstream>
-#include <string>
-#include <unordered_map>
 #include "printer.h"
+
 using namespace std;
 
 Printer::Printer(string filename)

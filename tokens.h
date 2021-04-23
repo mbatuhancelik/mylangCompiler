@@ -1,11 +1,11 @@
 #include <string>
 #include <regex>
+#include <iostream>
 
 #ifndef tokens
 #define tokens
 
 using namespace std;
-regex chooseRegex("choose\\s{0,}\\(([a-zA-Z0-9+\\*\\-\\/\\s()]*,){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]*?\\)");
 bool isValidVariable(string s);
 bool isValidInteger(string s);
 bool isValidAssignment(string s);

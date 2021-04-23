@@ -1,8 +1,5 @@
-#include <stack>
 #include "compiler.h"
-#include <algorithm>
-#include "utilities.h"
-#include "infixtopostfix.h"
+
 using namespace std;
 
 extern regex chooseRegex;

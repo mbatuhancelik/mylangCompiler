@@ -1,9 +1,12 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
-#if !defined(printer)
+
+#ifndef printer
 #define printer
+
 using namespace std;
+
 class Printer{
     private:
     ofstream output;
