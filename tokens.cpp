@@ -20,7 +20,7 @@ regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
 regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
 regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
-regex chooseRegex("choose\\s{0,}\\(([a-zA-Z0-9+\\*\\-\\/\\s()]*,){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]*?\\)");
+regex chooseRegex("choose\\s{0,}\\((((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*,){3,3}((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*?\\)");
 regex commaRegex(",");
 
 bool isValidExpression(string s);

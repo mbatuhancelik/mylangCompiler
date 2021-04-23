@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         lines ++;
     }
 
-    c.finalize(lines);
+    c.finalize(lines-1);
 
     return 0;
 }
