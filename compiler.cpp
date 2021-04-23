@@ -142,7 +142,7 @@ bool Compiler::compileIf(string s){
     this->p.print(ifcond + ":");
     this->p.print("");
 
-    s = s.substr(6,s.length()-8);
+    s = s.substr(3,s.length()-5);
     string exp = this->compileExpression(s);
     string temp = this->getTemp();
     this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
@@ -169,7 +169,10 @@ bool Compiler::compileCurv(string s){
     }
     return true;
 }
-void Compiler::finalize(){
+void Compiler::finalize(int line, bool syntaxError /*false by default*/){
+    if(syntaxError || this->inIf || this->inWhile)
+    this->p.syntaxError(line);
+    else
     this->p.finalize(this->variableMap);
 }
 

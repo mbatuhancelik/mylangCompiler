@@ -2,41 +2,73 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
     
     //TODO remove comments
     //TODO print syntax error
     
-    string reading = "trial.my";
 
-    ifstream read(reading);
-    Printer p("output.ll");
+    ifstream read(argv[1]);
+    Printer p(argv[2]);
+    int lines = 0;
     Compiler c(p);
+    string reading;
     while(getline(read,reading)){
-        
+        int r = reading.find_first_of("\r");
+        if(r != -1){
+            reading = reading.substr(0 , r) ;
+        }
+        int comment = reading.find_first_of("#");
+        if(comment != -1){
+            reading = reading.substr(0 , comment) ;
+        }
+        if(reading.empty()){
+        lines++;
+        continue;}
         string type = getType(reading);
         reading.erase(remove(reading.begin(), reading.end(), ' '), reading.end());
         reading.erase(remove(reading.begin(), reading.end(), '\t'), reading.end());
+        if(reading.empty()){
+        lines++;
+        continue;}
         if(type == "assignment"){
             c.compileAssignment(reading);
         }
         if(type == "if"){
-            c.compileIf(reading);
+            bool nested = c.compileIf(reading);
+            if(!nested){
+                c.finalize(lines ,  true);
+                return 0;
+            }
+            
         }
         if(type == "print"){
             c.compilePrint(reading);
         }
         if(type =="while"){
-            bool syntax = c.compileWhile(reading);  
-            // if(!syntax) { //syntax error }
+            bool nested = c.compileWhile(reading);  
+            if(!nested) {
+                c.finalize(lines , true);
+                return 0;
+            }
         }
         if(type =="curv"){
-            c.compileCurv(reading);   
+             bool syntax = c.compileCurv(reading); 
+             if(!syntax) {
+                c.finalize(lines , true);
+                return 0;
+            }  
         }
+        if(type == "syntax error"){
+            c.finalize(lines ,  true);
+            return 0; 
+            
+        }
+        lines ++;
     }
 
-    c.finalize();
+    c.finalize(lines);
 
     return 0;
 }

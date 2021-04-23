@@ -36,7 +36,7 @@ class Compiler{
     bool compileCurv(string s);
     string compileChoose(string s);
     void replaceChoose(string &s);
-    void finalize();
+    void finalize(int line, bool syntaxError = false);
     
 };
 

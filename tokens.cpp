@@ -5,7 +5,7 @@ using namespace std;
 
 string varRegexStr = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
 string intRegexStr = "\\s{0,}([0-9]{1,})\\s{0,}";
-string paranRegexStr = "\\((?:[^)(,]*?)*+\\)";
+string paranRegexStr = "\\([^(),]{1,}\\)";
 string termRegexStr = "(.*[\\*\\/]{1,1})+.*";
 string multdivRegexStr = "[\\*|\\/]{1,1}";
 
@@ -16,8 +16,8 @@ regex termRegex(termRegexStr);
 regex addsubRegex("[+-]");
 regex multdivRegex(multdivRegexStr);
 regex equalsRegex("=");
-regex whileRegex("\\s{0,}while(\\(.{1,}\\))\\s{0,}\\{");
-regex ifRegex("\\s{0,}if(\\(.{1,}\\))\\s{0,}\\{");
+regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
+regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
 regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
 regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
 regex chooseRegex("choose\\s{0,}\\(([a-zA-Z0-9+\\*\\-\\/\\s()]*,){3,3}[a-zA-Z0-9+\\*\\-\\/\\s()]*?\\)");
@@ -84,9 +84,9 @@ bool removeParenthesis(string &s){
 
     while (std::regex_search(s, m, parenthesisRegex)){
 
-        for (auto x : m){
+        
 
-            string xx = x;
+            string xx = m[0];
             
             if (checkBetweenParenthesis(xx)){
             string rep = replacement + to_string(index) + " ";
@@ -94,7 +94,7 @@ bool removeParenthesis(string &s){
             index += 1;
             }
             else return false;
-        }
+        
 
     }
     return true;
@@ -128,11 +128,6 @@ bool removeChoose(string &s){
         string xx = m[0].str();
 
         int parantval = 0;
-        for(int i = 0; i < m.size(); i++){
-
-        	cout << m[i] << endl;
-
-        }
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
