@@ -161,11 +161,13 @@ bool Compiler::compileCurv(string s){
     this->p.print("br label %ifend" + to_string( this->ifs));
     this->p.print( "ifend" + to_string( this->ifs) + ":");
     this->ifs ++;
+    this->inIf = false;
     }
     else{
     this->p.print("br label %whcond" + to_string( this->whiles));
     this->p.print( "whend" + to_string( this->whiles) + ":");
     this->whiles ++;
+    this->inWhile = false;
     }
     return true;
 }
@@ -186,11 +188,6 @@ void Compiler::replaceChoose(string &s){
         string xx = m[0].str();
 
         int parantval = 0;
-        for(int i = 0; i < m.size(); i++){
-
-        	cout << m[i] << endl;
-
-        }
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
@@ -270,6 +267,6 @@ string Compiler::compileChoose(string s){
     this->p.print("br label %" + endlabel);
 
     this->p.print(endlabel + ":");
-
+    this->chooses ++;
     return result;
 }
