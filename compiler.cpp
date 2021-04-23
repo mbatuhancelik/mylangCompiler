@@ -10,6 +10,8 @@ Compiler::Compiler (Printer &p):p{p}{
     this->inIf = false;
     this->whiles = 0;
     this->ifs = 0;
+    this->chooses = 0;
+    this->chooseVariables = 0;
 }
 string Compiler::getTemp(){
     string temp = "%t" + to_string(this->variables);
@@ -212,7 +214,7 @@ void Compiler::replaceChoose(string &s){
 }
 //compiles chooseses but does not compile nested chooses
 string Compiler::compileChoose(string s){
-    s = s.substr(6); // 6 is index of first (
+    s = s.substr(7); // 7 is index of first (
     s=s.substr(0,s.length() -1);
     
     int comma = s.find_first_of(",");
@@ -229,7 +231,8 @@ string Compiler::compileChoose(string s){
     expr1 = compileExpression(expr1);
     string g = "%cb" + to_string(this->chooseVariables++);
     string l = "%cb" + to_string(this->chooseVariables++);
-    string result = "%c" + to_string(this->chooses);
+    string result = "c" + to_string(this->chooses);
+    string resultPointer = compilePoint(result);
     string glabel = "chooseG" + to_string(this->chooses);
     string lelabel = "chooseLE" + to_string(this->chooses);
     string llabel = "chooseL" + to_string(this->chooses);
@@ -244,7 +247,7 @@ string Compiler::compileChoose(string s){
 
     expr3 = compileExpression(expr3);
 
-    this->p.print(result + " = add i32 " + expr3 + " , 0");
+    this->p.print("store i32 " + expr3 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
 
     this->p.print(lelabel + ":");
@@ -254,13 +257,13 @@ string Compiler::compileChoose(string s){
     this->p.print(llabel + ":");
 
     expr4 = compileExpression(expr4);
-    this->p.print(result + " = add i32 " + expr4 + " , 0");
+    this->p.print("store i32 " + expr4 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
     
     this->p.print(elabel + ":");
 
     expr2 = compileExpression(expr2);
-    this->p.print(result + " = add i32 " + expr2 + " , 0");
+    this->p.print("store i32 " + expr2 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
 
     this->p.print(endlabel + ":");
