@@ -2,7 +2,8 @@
 
 using namespace std;
 
-extern regex chooseRegex;
+extern regex chooseRegex; //regex that specifies choose functions
+//initializes variables
 Compiler::Compiler (Printer &p):p{p}{
     this->pointers = 0;
     this->variables = 0;
@@ -13,48 +14,57 @@ Compiler::Compiler (Printer &p):p{p}{
     this->chooses = 0;
     this->chooseVariables = 0;
 }
+//returns a unique temporary variable
 string Compiler::getTemp(){
     string temp = "%t" + to_string(this->variables);
     this->variables ++ ;
     return temp;
 }
-string Compiler::compilePoint(string s){
-    if(this->variableMap.find(s) == this->variableMap.end()){
+//takes a mylang variable and returns the corresponding llvm pointer
+string Compiler::compilePoint(string mylangvar){
+    // if mylangvar is not a key in variableMap
+    // creates a pointer and matches them in variable map
+    if(this->variableMap.find(mylangvar) == this->variableMap.end()){
         string pointer = "%p" + to_string(pointers);
-        this->variableMap[s] = pointer;
+        this->variableMap[mylangvar] = pointer;
         this->pointers += 1;
     }
-    return variableMap[s];
+    // returns the llvm pointer corresponding to the mylangvar
+    return variableMap[mylangvar];
 }
-string Compiler::loadPoint(string s){
-    s = compilePoint(s);
+// takes a mylang var and loads its pointer in llvm code
+string Compiler::loadPoint(string mylangvar){
+    mylangvar = compilePoint(mylangvar);
     string temp = this->getTemp();
-    this->p.print(temp + " = load i32* " + s);
+    this->p.print(temp + " = load i32* " + mylangvar);
     return temp;
 }
-bool Compiler::compileAssignment(string s){
-    // s.erase(remove(s.begin(), s.end(), ' '), s.end());
-    string point = s.substr(0,s.find_first_of("="));
-    string exp = s.substr(s.find_first_of("=")+1);
+//compiles assignment statements
+// <assignstm>-> <var> = <expression>
+void Compiler::compileAssignment(string assignstm){
 
-    exp = compileExpression(exp);
-    point = compilePoint(point);
-    this->p.print("store i32 "+ exp+", i32* " + point);
-    return true;
+    string var = assignstm.substr(0,assignstm.find_first_of("=")); // variable part in BNF
+    string exp = assignstm.substr(assignstm.find_first_of("=")+1); // expression part in BNF
+    
+    exp = compileExpression(exp); // temporary variable which holds result of the expression
+    var = compilePoint(var); // llvm pointer corresponds to mylang var
+    this->p.print("store i32 "+ exp+", i32* " + var); // store the rsult of the expression in the pointer
 }
+//compiles expressions
+string Compiler::compileExpression(string exp){
+    // compiles choose functions within the expression
+    // replaces them with temp variables that hold results of choose functions
+    replaceChoose(exp); 
 
-string Compiler::compileExpression(string s){
-    // TODO: handle chooses
-    replaceChoose(s);
-
-    s = infixtopostfix(s);
+    exp = infixtopostfix(exp);
 
     stack<string> var;
 
     string token= "";
     // a+%c
-    stringstream tokenizer(s);
-
+    stringstream tokenizer(exp);
+    // compiles postfix expressions
+    // after each step stores the result in a llvm variable and pushes it to var stack
     while(tokenizer >> token){
 
         if( token[0] == '+'  ||token[0] == '-'||  
@@ -70,27 +80,42 @@ string Compiler::compileExpression(string s){
             var.pop();
 
             if(token[0] == '+' ){
-                string temp = this->getTemp();
+                // get a temp variable to store the result
+                string temp = this->getTemp(); 
+                // perform addition in llvm
                 this->p.print(temp +" = add i32 " +firstoperand+ "," +secondoperand);
+                //push the temp var to stack for further operations
                 var.push(temp);
             }
             if(token[0] == '-' ){
+                // get a temp variable to store the result
                 string temp = this->getTemp();
+                // perform subtraction in llvm
                 this->p.print(temp +" = sub i32 " +firstoperand+ "," +secondoperand);
+                //push the temp var to stack for further operations
                 var.push(temp);
             }
             if(token[0] == '*' ){
+                // get a temp variable to store the result
                 string temp = this->getTemp();
+                // perform multiplication in llvm
                 this->p.print(temp +" = mul i32 " +firstoperand+ "," +secondoperand);
+                //push the temp var to stack for further operations
                 var.push(temp);
             }
             if(token[0] == '/' ){
+                // get a temp variable to store the result
                 string temp = this->getTemp();
+                // perform division in llvm
                 this->p.print(temp +" = sdiv i32 " +firstoperand+ "," +secondoperand);
+                //push the temp var to stack for further operations
                 var.push(temp);
             }
 
         }else{
+            // if token is a valid variable, its a mylang variable
+            //loads its pointer to a temp var and stores it in stack
+            // otherwise token is an temporary llvm variable
             if(isValidVariable(token))
                 var.push(loadPoint(token));
             else
@@ -99,70 +124,89 @@ string Compiler::compileExpression(string s){
         }
         
     }
+    // result of the expression is stored in the last temp llvm variable in the stack
     string result = var.top();
     return result;
-
 }
-void Compiler::compilePrint(string s){
-    //print(<expr>)
-    s = s.substr(6,s.length()-7);
-    string temp = this->compileExpression(s);
+//compiles print statements
+// <printstm>-> print(<expr>)
+void Compiler::compilePrint(string printstm){
+    // expression in the BNF
+    string exp = printstm.substr(6,printstm.length()-7);
+    //compiles the expression
+    string temp = this->compileExpression(exp);
+    //prints out the result of the expression
     this->p.print("call i32 (i8*, ...)* @printf(i8* getelementptr ([4x i8]* @print.str, i32 0, i32 0), i32 " + temp + ")" );
 }
-bool Compiler::compileWhile(string s){
+// <whilestm>-> while(<expr>) {
+//compiles the statement above
+//begins the while body in llvm code
+bool Compiler::compileWhile(string whstm){
+    // if compiler currently compiles a while or body
+    //thus there is nested while or if
+    //returns false
     if(this->inIf || this->inWhile)
         return false;
     this->inWhile = true;
-    string whcond = "whcond" + to_string( this->whiles);
-    string whbody = "whbody" + to_string( this->whiles);
-    this->p.print("br label %" + whcond);
+    string whcond = "whcond" + to_string( this->whiles); // while condition label
+    string whbody = "whbody" + to_string( this->whiles); // while body label
+    this->p.print("br label %" + whcond); // llvm goes to whcond label
     this->p.print("");
-    this->p.print(whcond + ":");
+    this->p.print(whcond + ":"); 
     this->p.print("");
 
-    s = s.substr(6,s.length()-8);
-    string exp = this->compileExpression(s);
-    string temp = this->getTemp();
-    this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
+    string exp = whstm.substr(6,whstm.length()-8); // expression in BNF
+    exp = this->compileExpression(exp); // tempvar which stores result of the expression
+    string temp = this->getTemp(); // tempvar to store boolean
+    this->p.print(temp + " = icmp ne i32 " + exp + " , 0"); // check if exp equals 0 in llvm
     this->p.print("");
-    this->p.print("br i1 " + temp +", label %" +whbody + ", label %whend" +to_string( this->whiles));
+    // if exp is not 0 goes to whbody
+    this->p.print("br i1 " + temp +", label %" +whbody + ", label %whend" +to_string( this->whiles)); 
     this->p.print("");
     this->p.print(whbody + ":");
+    //if while is compiled successfully returns true 
     return true;
-
 }
-bool Compiler::compileIf(string s){
+// compiles if statemens
+bool Compiler::compileIf(string ifstm){
+    //if already in a if or while body returns false
     if(this->inIf || this->inWhile)
         return false;
     this->inIf = true;
-    string ifcond = "ifcond" + to_string( this->ifs);
-    string ifbody = "ifbody" + to_string( this->ifs);
-    this->p.print("br label %" + ifcond);
+    string ifcond = "ifcond" + to_string( this->ifs); // ifcond label
+    string ifbody = "ifbody" + to_string( this->ifs); //ifbody label
+    this->p.print("br label %" + ifcond); // llvm goes to ifcond label
     this->p.print("");
     this->p.print(ifcond + ":");
     this->p.print("");
 
-    s = s.substr(3,s.length()-5);
-    string exp = this->compileExpression(s);
-    string temp = this->getTemp();
-    this->p.print(temp + " = icmp ne i32 " + exp + " , 0");
+    string exp = ifstm.substr(3,ifstm.length()-5); // expression in if statement
+    exp = this->compileExpression(exp); // temp var stores result of exp
+    string temp = this->getTemp(); // temp var to store boolean
+    this->p.print(temp + " = icmp ne i32 " + exp + " , 0"); // compare exp to 0 in llvm
     this->p.print("");
+    // if exp is not 0 goes to ifbody
     this->p.print("br i1 " + temp +", label %" +ifbody + ", label %ifend" +to_string( this->ifs));
     this->p.print("");
+    //begins the ifbody
     this->p.print(ifbody + ":");
     return true;
 
 }
+//compiles } token
 bool Compiler::compileCurv(string s){
+    // if currently not in while of if body
+    //returns false
     if(!(this->inIf || this->inWhile))
     return false;
-
+    //if } ends a ifbody
     if(inIf){
     this->p.print("br label %ifend" + to_string( this->ifs));
     this->p.print( "ifend" + to_string( this->ifs) + ":");
     this->ifs ++;
     this->inIf = false;
     }
+    //if } ends a while body
     else{
     this->p.print("br label %whcond" + to_string( this->whiles));
     this->p.print( "whend" + to_string( this->whiles) + ":");
@@ -171,19 +215,25 @@ bool Compiler::compileCurv(string s){
     }
     return true;
 }
+//finalizes compilation by allocating pointers 
+//and setting their value to 0
 void Compiler::finalize(int line, bool syntaxError /*false by default*/){
+    //if there is a syntax error or there is a nonfinished if or while body 
+    // prints out a syntax error
     if(syntaxError || this->inIf || this->inWhile)
     this->p.syntaxError(line);
+    // if everyting is ok finalizes compilation
     else
     this->p.finalize(this->variableMap);
 }
-
-void Compiler::replaceChoose(string &s){
+//replaces choose functions in an expression with temporary values which 
+//stores result of the function
+void Compiler::replaceChoose(string &exp){
 
     smatch m;
     int index = 0;
 
-    while (regex_search(s, m, chooseRegex)){
+    while (regex_search(exp, m, chooseRegex)){
 
         string xx = m[0].str();
 
@@ -199,21 +249,20 @@ void Compiler::replaceChoose(string &s){
         	else if(xx[i] == ')') parantval--;
 
         }
-        int index = s.find(xx);
+        int index = exp.find(xx);
         while(parantval > 0){
             int len = xx.length();
-        	string temp = s.substr(index+len);
+        	string temp = exp.substr(index+len);
 
             int t = temp.find_first_of(")");
 
             xx += temp.substr(0,t+1);
             parantval -- ;
-
         }
         // find xx
         string comp = compileChoose(xx);
 
-        findAndReplace(s , xx , comp);
+        findAndReplace(exp , xx , comp);
 
     }
 }
