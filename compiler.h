@@ -2,8 +2,6 @@
 #include "tokens.h"
 #include "infixtopostfix.h"
 #include "utilities.h"
-
-#include <string>
 #include <sstream>
 #include <unordered_map>
 
