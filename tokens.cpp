@@ -3,18 +3,12 @@
 
 using namespace std;
 
-string varRegexStr = "(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})";
-string intRegexStr = "\\s{0,}([0-9]{1,})\\s{0,}";
-string paranRegexStr = "\\([^(),]{1,}\\)";
-string termRegexStr = "(.*[\\*\\/]{1,1})+.*";
-string multdivRegexStr = "[\\*|\\/]{1,1}";
-
-regex varRegex(varRegexStr);
-regex integerRegex(intRegexStr);
-regex parenthesisRegex(paranRegexStr);
-regex termRegex(termRegexStr);
+regex varRegex("(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})");
+regex integerRegex("\\s{0,}([0-9]{1,})\\s{0,}");
+regex parenthesisRegex("\\([^(),]{1,}\\)");
+regex termRegex("(.*[\\*\\/]{1,1})+.*");
 regex addsubRegex("[+-]");
-regex multdivRegex(multdivRegexStr);
+regex multdivRegex("[\\*|\\/]{1,1}");
 regex equalsRegex("=");
 regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
 regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
@@ -84,8 +78,6 @@ bool removeParenthesis(string &s){
 
     while (std::regex_search(s, m, parenthesisRegex)){
 
-        
-
             string xx = m[0];
             
             if (checkBetweenParenthesis(xx)){
@@ -94,8 +86,6 @@ bool removeParenthesis(string &s){
             index += 1;
             }
             else return false;
-        
-
     }
     return true;
 }
@@ -128,12 +118,14 @@ bool removeChoose(string &s){
         string xx = m[0].str();
 
         int parantval = 0;
+
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
         	else if(xx[i] == ')') parantval--;
 
         }
+
         int index = s.find(xx);
         while(parantval > 0){
             int len = xx.length();
@@ -145,7 +137,7 @@ bool removeChoose(string &s){
             parantval -- ;
 
         }
-        // find xx
+
         if (isValidChoose(xx)){
 
 			string rep = " tempc" + to_string(index) + " ";
@@ -165,11 +157,9 @@ bool removeChoose(string &s){
 bool isValidExpression(string s){
 
     bool validChoose = removeChoose(s);
-
     if(!validChoose) return false;
 
     bool validParenthesis = removeParenthesis(s);
-
     if(!validParenthesis) return false;
 
     if (isValidTerm(s))
@@ -177,8 +167,8 @@ bool isValidExpression(string s){
 
     smatch m;
     bool multi = regex_search(s, m, addsubRegex);
-    if (multi)
-    {
+
+    if (multi){
         bool isExpression = isValidExpression(m.suffix());
         bool isTerm = isValidTerm(m.prefix());
         return isTerm && isExpression;
@@ -192,8 +182,7 @@ bool isValidAssignment(string s){
     smatch m;
     bool multi = regex_search(s, m, equalsRegex);
 
-    if (multi)
-    {
+    if (multi){
         bool expr = isValidExpression(m.suffix());
         bool var = isValidTerm(m.prefix());
         return var && expr;

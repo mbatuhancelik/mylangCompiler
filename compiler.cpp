@@ -5,6 +5,7 @@ using namespace std;
 extern regex chooseRegex; //regex that specifies choose functions
 //initializes variables
 Compiler::Compiler (Printer &p):p{p}{
+
     this->pointers = 0;
     this->variables = 0;
     this->inWhile = false;
@@ -13,12 +14,15 @@ Compiler::Compiler (Printer &p):p{p}{
     this->ifs = 0;
     this->chooses = 0;
     this->chooseVariables = 0;
+
 }
 //returns a unique temporary variable
 string Compiler::getTemp(){
+
     string temp = "%t" + to_string(this->variables);
     this->variables ++ ;
     return temp;
+    
 }
 //takes a mylang variable and returns the corresponding llvm pointer
 string Compiler::compilePoint(string mylangvar){
@@ -147,7 +151,9 @@ bool Compiler::compileWhile(string whstm){
     //returns false
     if(this->inIf || this->inWhile)
         return false;
+
     this->inWhile = true;
+
     string whcond = "whcond" + to_string( this->whiles); // while condition label
     string whbody = "whbody" + to_string( this->whiles); // while body label
     this->p.print("br label %" + whcond); // llvm goes to whcond label
@@ -238,11 +244,7 @@ void Compiler::replaceChoose(string &exp){
         string xx = m[0].str();
 
         int parantval = 0;
-        for(int i = 0; i < m.size(); i++){
-
-        	cout << m[i] << endl;
-
-        }
+        
         for(int i = 0; i < xx.size(); i++){
 
         	if(xx[i] == '(') parantval++;
@@ -268,21 +270,20 @@ void Compiler::replaceChoose(string &exp){
 }
 //compiles chooseses but does not compile nested chooses
 string Compiler::compileChoose(string s){
+
     s = s.substr(7); // 7 is index of first (
-    s=s.substr(0,s.length() -1);
+    s = s.substr(0,s.length() -1);
     
     int comma = s.find_first_of(",");
     string expr1 = s.substr(0,comma);
-    s= s.substr(comma+1);
+    s = s.substr(comma + 1);
     comma = s.find_first_of(",");
     string expr2 = s.substr(0,comma);
-    s= s.substr(comma+1);
+    s = s.substr(comma + 1);
     comma = s.find_first_of(",");
-    string expr3 = s.substr(0,comma);
+    string expr3 = s.substr(0, comma);
+    string expr4 = s.substr(comma + 1);
 
-    string expr4 = s.substr(comma+1);
-
-    expr1 = compileExpression(expr1);
     string g = "%cb" + to_string(this->chooseVariables++);
     string l = "%cb" + to_string(this->chooseVariables++);
     string result = "c" + to_string(this->chooses);
@@ -292,34 +293,28 @@ string Compiler::compileChoose(string s){
     string llabel = "chooseL" + to_string(this->chooses);
     string elabel = "chooseE" + to_string(this->chooses);
     string endlabel = "chooseend" + to_string(this->chooses);
+
+    expr1 = compileExpression(expr1);
     this->p.print(g +" = icmp sgt i32 " + expr1 + " , 0");
     this->p.print(l + " = icmp slt i32 " + expr1 + " , 0");
-
     this->p.print("br i1 " + g +", label %" + glabel + ", label %" +lelabel);
-
     this->p.print("\n" + glabel + ":" + "\n");
 
     expr3 = compileExpression(expr3);
-
     this->p.print("store i32 " + expr3 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
-
     this->p.print("\n" + lelabel + ":" + "\n");
-
     this->p.print("br i1 " + l +", label %" + llabel + ", label %" + elabel);
-
     this->p.print("\n" + llabel + ":" + "\n");
 
     expr4 = compileExpression(expr4);
     this->p.print("store i32 " + expr4 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
-    
     this->p.print("\n" + elabel + ":" + "\n");
 
     expr2 = compileExpression(expr2);
     this->p.print("store i32 " + expr2 + " ,i32* " + resultPointer);
     this->p.print("br label %" + endlabel);
-
     this->p.print("\n" + endlabel + ":" + "\n");
 
     this->chooses++;
