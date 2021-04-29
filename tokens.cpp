@@ -3,120 +3,148 @@
 
 using namespace std;
 
-regex varRegex("(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})");
-regex integerRegex("\\s{0,}([0-9]{1,})\\s{0,}");
-regex parenthesisRegex("\\([^(),]{1,}\\)");
-regex termRegex("(.*[\\*\\/]{1,1})+.*");
-regex addsubRegex("[+-]");
-regex multdivRegex("[\\*|\\/]{1,1}");
-regex equalsRegex("=");
-regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
-regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");
-regex printRegex("\\s{0,}print(\\(.{1,}\\))\\s{0,}");
-regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}");
+regex varRegex("(\\s{0,}[a-zA-Z]{1,}[a-zA-Z0-9]{0,}\\s{0,})"); //regex expression that defines variables
+regex integerRegex("\\s{0,}([0-9]{1,})\\s{0,}");//regex expression that defines integers
+regex parenthesisRegex("\\([^(),]{1,}\\)");//regex expression that defines expressions between parenthesis
+regex termRegex("(.*[\\*\\/]{1,1})+.*");//regex expression that defines terms
+regex addsubRegex("[+-]{1,1}");//regex expression that defines addition and subtraction operators
+regex multdivRegex("[\\*|\\/]{1,1}"); //regex expression that defines multiplication and division operators
+regex equalsRegex("=");//regex expression that defines equals sign
+regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");//regex expression that defines while statements
+regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");//regex expression that defines if statements
+regex printRegex("\\s{0,}print\\s{0,}(\\(.{1,}\\))\\s{0,}");//regex expression that defines print statements
+regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}"); //regex expression that defines closed curved parenthesis statements
+//hideous regex expression that defines choose functions
 regex chooseRegex("choose\\s{0,}\\((((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*,){3,3}((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*?\\)");
-regex commaRegex(",");
+regex commaRegex(","); //regex expression that defines a comma
 
-bool isValidExpression(string s);
+bool isValidExpression(string s); // declare isValidExpression
 
+//checks if a variable is valir
 bool isValidVariable(string s){
-
+    //returns if the variable matches the variable regex
     return regex_match(s, varRegex);
 
 }
+//checks if an integer is valid
 bool isValidInteger(string s){
-
+    //returns if the variable matches the integer regex
     return regex_match(s, integerRegex);
 
 }
-
+//checks if a factoris valid
 bool isValidFactor(string s){
-
+    // if s is a valid number, returns true
     bool isNumber = isValidInteger(s);
     if (isNumber)
-        return true;
-
+        return true;   
+    
+    //if x is a valid variable, returns true
     bool isVar = isValidVariable(s);
     if (isVar)
         return true;
+
+    // otherwise returns false
     return false;
 
 }
 
+//checks if a term is valid
 bool isValidTerm(string s){
 
     smatch matches;
+    //true if there are multiple nonterminals divided by multiplication or division
     bool multi = regex_match(s, termRegex);
 
     if (multi){
+        //find the first multiplication or division operator
         regex_search(s, matches, multdivRegex);
+        //true if right hand side of the operator is a term 
         bool isTerm = isValidTerm(matches.suffix());
+        //true if left hand side of the operator is a factor
         bool isFactor = isValidFactor(matches.prefix());
+        //returns true if both are true
         return isTerm && isFactor;
     }
-
+    //if s is a valid factor, returns true
     if (isValidFactor(s))
         return true;
+
+    //otherwise, returns false
     return false;
 
 }
 
+//returns true if the expression between parentesis is valid
 bool checkBetweenParenthesis(string s){
-
+    //true if s is something between parenthesis and does not contain nested parenthesis
     bool isparenthesis = regex_match(s, parenthesisRegex);
+
     if (isparenthesis)
+        //if thats the case, return validity of the expression inside
         return (isValidExpression(s.substr(1, s.length() - 2)));
+
+    //if s does not match parenthesis regex, return false
     return false;
 
 }
 
-bool removeParenthesis(string &s){
+//eliminates the parenthesis in expression by replacing them with random variables 
+bool removeParenthesis(string &expr){
 
     smatch matches;
     int index = 0;
-    string replacement = " temp";
+    string replacement = " temp"; //random variable name to replace parenthesis with
 
-    while (std::regex_search(s, matches, parenthesisRegex)){
+    while (std::regex_search(expr, matches, parenthesisRegex)){ //do while there are parenthesis within the string
 
-            string match = matches[0];
+            string match = matches[0]; //locate inermost parenthesis
             
-            if (checkBetweenParenthesis(match)){
-            replacement = replacement + to_string(index) + " ";
-            findAndReplace(s, match, replacement);
+            if (checkBetweenParenthesis(match)){ //if the expression within is valid
+            replacement = replacement + to_string(index) + " "; //create a temp variable 
+            findAndReplace(expr, match, replacement); //replace the innermost parenthesis with the temp variable
             index += 1;
             }
-            else return false;
+            else return false; // if all parenthesis could not be replaced, return false
     }
+    //otherwise, return true
     return true;
 }
-
+//checks for if given string is a valid choose function
 bool isValidChoose(string s){
 
-    s = s.substr(7,s.length()-8) + ",";
+    //change form of string to:
+    // expr1,expr2,expr3,expr4,
+    s = s.substr(7,s.length()-8) + ","; 
 
     smatch matches;
+    //while there is something before the comma
     while (std::regex_search(s, matches, commaRegex) && s.length() != 1){
-
+        //if the thing before the comma is not a valid expression return false
         if(!isValidExpression(matches.prefix()))
             return false;
+        //remove the validated expresion from s
         s = matches.suffix();
 
     }
-
+    //if all expressions are valid, returns true
     return true;
 
 }
-// removes syntatically correct chooses
+// removes syntatically correct chooses from string s
 bool removeChoose(string &s){
 
     smatch matches;
-    int index = 0;
+    int index = 0; //beginning index of the choose function 
 
+    //while there is something that matches the choose regex in s
     while (std::regex_search(s, matches, chooseRegex)){
 
-        string match = matches[0].str();
+        string match = matches[0].str(); // extract the choose function
 
-        int parantval = 0;
+        //calculate the difference between number of opening and closing parenthesis
+        //paranval should be 0 for balanced parenthesis
+        int parantval = 0; 
 
         for(int i = 0; i < match.size(); i++){
 
@@ -125,7 +153,11 @@ bool removeChoose(string &s){
 
         }
 
-        int index = s.find(match);
+        int index = s.find(match); // beginning index of the choose sub
+
+        //while parenthesis are not balanced, extend the match and 
+        //add closing parenthesis until they are matched
+        //Note that if paranval <0, the string cant match the regex
         while(parantval > 0){
             int len = match.length();
         	string temp = s.substr(index+len);
@@ -136,10 +168,12 @@ bool removeChoose(string &s){
             parantval -- ;
 
         }
-
+        //if the choose function is valid
         if (isValidChoose(match)){
 
+            //create a replacement string
 			string replacement = " tempc" + to_string(index) + " ";
+            //replace the choose function with a variable
 			findAndReplace(s, match, replacement);
 
 			index += 1;

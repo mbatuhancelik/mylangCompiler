@@ -232,20 +232,20 @@ void Compiler::finalize(int line, bool syntaxError /*false by default*/){
     else
         this->p.finalize(this->pointerMap);
 }
-//replaces choose functions in an expression with temporary values which 
+//replaces choose functions in an expression with llvm pointers which 
 //stores result of the function
 void Compiler::replaceChoose(string &exp){
 
     smatch matches;
-    int indexofMatch = 0;
 
-    while (regex_search(exp, matches, chooseRegex)){
+    while (regex_search(exp, matches, chooseRegex)){ // while there are choose functions in expression
 
-        string chooseMatch = matches[0].str();
+        string chooseMatch = matches[0].str(); //choose function substring
 
-        int parantval = 0;
+        int parantval = 0; // difference between number of closed parenthesis and open parenthesis
         
-        for(int i = 0; i < chooseMatch.size(); i++){
+        // calculate the parentval
+        for(int i = 0; i < chooseMatch.size(); i++){ 
 
         	if(chooseMatch[i] == '(')
                 parantval++;
@@ -253,9 +253,10 @@ void Compiler::replaceChoose(string &exp){
                 parantval--;
 
         }
-
-        int indexofMatch = exp.find(chooseMatch);
-
+        
+        int indexofMatch = exp.find(chooseMatch);// beginning index of choose function
+        
+        // if parenthesis are not balanced, balance them by extending chooseMatch
         while(parantval > 0){
 
             int len = chooseMatch.length();
@@ -266,62 +267,88 @@ void Compiler::replaceChoose(string &exp){
 
         }
         // find chooseMatch
-        string choosePointer = compileChoose(chooseMatch);
+        string choosePointer = compileChoose(chooseMatch); // llvm pointer which stores result of the choose function
 
-        findAndReplace(exp , chooseMatch , choosePointer);
+        findAndReplace(exp , chooseMatch , choosePointer); //replaces the removed choose functions with llvm pointer
 
     }
 }
-//compiles chooseses but does not compile nested chooseCount
+//compiles a choose function
 string Compiler::compileChoose(string s){
 
+    //get the inside of parenthesis
     s = s.substr(7); // 7 is indexofMatch of first (
     s = s.substr(0, s.length() - 1);
     
+    //extract expression 1
     int comma = s.find_first_of(",");
     string expr1 = s.substr(0,comma);
     s = s.substr(comma + 1);
+
+    //extract expression 2
     comma = s.find_first_of(",");
     string expr2 = s.substr(0,comma);
     s = s.substr(comma + 1);
+
+    //extract expression 3 and 4
     comma = s.find_first_of(",");
     string expr3 = s.substr(0, comma);
     string expr4 = s.substr(comma + 1);
 
-    string greaterCmp = "%cb" + to_string(this->choosePointerCount++);
-    string lessCmp = "%cb" + to_string(this->choosePointerCount++);
-    string result = "c" + to_string(this->chooseCount);
-    string resultPointer = compilePoint(result);
-    string glabel = "chooseG" + to_string(this->chooseCount);
-    string lelabel = "chooseLE" + to_string(this->chooseCount);
-    string llabel = "chooseL" + to_string(this->chooseCount);
-    string elabel = "chooseE" + to_string(this->chooseCount);
-    string endlabel = "chooseend" + to_string(this->chooseCount);
+    string greaterCmp = "%cb" + to_string(this->choosePointerCount++); //llvm boolean to store if expr1 is bigger than 0
+    string lessCmp = "%cb" + to_string(this->choosePointerCount++);//llvm boolean to store if expr1 is less than 0
+    string result = "choose_pointer" + to_string(this->chooseCount); //pseudo mylang variable that represents this choose function
+    string resultPointer = compilePoint(result);// llvm pointer that corresponds to mylang variable above
+    string glabel = "chooseG" + to_string(this->chooseCount); //llvm label to go if expr 1 is greater than 0
+    string lelabel = "chooseLE" + to_string(this->chooseCount);//llvm label to go if expr 1 is less than or equal to 0
+    string llabel = "chooseL" + to_string(this->chooseCount);//llvm label to go if expr 1 is less than to 0
+    string elabel = "chooseE" + to_string(this->chooseCount);//llvm label to go if expr 1 equals to 0
+    string endlabel = "chooseend" + to_string(this->chooseCount);//llvm label to go when execution ends
 
-    expr1 = compileExpression(expr1);
-    this->p.print(greaterCmp +" = icmp sgt i32 " + expr1 + " , 0");
-    this->p.print(lessCmp + " = icmp slt i32 " + expr1 + " , 0");
+    //from now on llvm code is generated 
+
+    expr1 = compileExpression(expr1); // llvm temp variable which stores value of expr 1
+    this->p.print(greaterCmp +" = icmp sgt i32 " + expr1 + " , 0"); // if expression is greater than 0
+    this->p.print(lessCmp + " = icmp slt i32 " + expr1 + " , 0");// if expression is less than 0
+    // if greaterCmp is true goto glabel, else go to lelabel
     this->p.print("br i1 " + greaterCmp +", label %" + glabel + ", label %" +lelabel);
+    //beginning of glabel
     this->p.print("\n" + glabel + ":" + "\n");
-
+    // calculate expr3 under glabel
     expr3 = compileExpression(expr3);
+    //store value of expr3 in result pointer
     this->p.print("store i32 " + expr3 + " ,i32* " + resultPointer);
+    //goto of endlabel
     this->p.print("br label %" + endlabel);
+    
+    //beginning of lelabel
     this->p.print("\n" + lelabel + ":" + "\n");
+    // if expr1 is less than 0 go to label, else go to elabel
     this->p.print("br i1 " + lessCmp +", label %" + llabel + ", label %" + elabel);
+
+    //beginning of llabel
     this->p.print("\n" + llabel + ":" + "\n");
-
+    // calculate expr4 in llvm
     expr4 = compileExpression(expr4);
+    //store result of expr4 in result pointer
     this->p.print("store i32 " + expr4 + " ,i32* " + resultPointer);
+    //goto endlabel
     this->p.print("br label %" + endlabel);
-    this->p.print("\n" + elabel + ":" + "\n");
 
+    //beginning of elabel 
+    this->p.print("\n" + elabel + ":" + "\n");
+    //calculate expr2 
     expr2 = compileExpression(expr2);
+    //store result of expr2 to result pointer
     this->p.print("store i32 " + expr2 + " ,i32* " + resultPointer);
+    //goto endlabel
     this->p.print("br label %" + endlabel);
+    //endlabel and end of choose function
     this->p.print("\n" + endlabel + ":" + "\n");
 
-    this->chooseCount++;
 
+    //increment the number of chooses
+    this->chooseCount++;
+    // return the pseudo mylang variable
     return result;
 }

@@ -9,6 +9,7 @@
 #define COMPILER_H
 
 // an object which takes valid mylang code and produces llvm code
+//It is responsible for coherent naming of llvm variables, labels, pointers
 class Compiler{
 
     private:
