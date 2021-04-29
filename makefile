@@ -1,8 +1,8 @@
-mylang2ir:			main.o  tokens.o printer.o util.o infixtopostfix.o compiler.o
+mylang2ir:			main.o tokens.o printer.o util.o infixtopostfix.o compiler.o
 					g++ main.o tokens.o printer.o util.o infixtopostfix.o  compiler.o -o mylang2ir -std=c++14
 
 
-main.o:				compiler.h 
+main.o:				main.cpp compiler.h 
 					g++ -c main.cpp -o main.o -std=c++14
 
 

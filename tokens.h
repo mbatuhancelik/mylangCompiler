@@ -1,10 +1,11 @@
 #include <string>
 #include <regex>
 
-#ifndef tokens
-#define tokens
+#ifndef TOKENS_H
+#define TOKENS_H
 
 using namespace std;
+
 bool isValidVariable(string s);
 bool isValidInteger(string s);
 bool isValidAssignment(string s);

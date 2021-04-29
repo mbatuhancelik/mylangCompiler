@@ -129,10 +129,6 @@ string infixtopostfix(string expression){
 
 		}
 
-		//printstack(myStack);
-
-		//cout << "\t\t" << newexpression << endl;
-
 	}
 
 	while(!myStack.empty()){

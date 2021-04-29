@@ -45,13 +45,13 @@ bool isValidFactor(string s){
 
 bool isValidTerm(string s){
 
-    smatch m;
+    smatch matches;
     bool multi = regex_match(s, termRegex);
 
     if (multi){
-        regex_search(s, m, multdivRegex);
-        bool isTerm = isValidTerm(m.suffix());
-        bool isFactor = isValidFactor(m.prefix());
+        regex_search(s, matches, multdivRegex);
+        bool isTerm = isValidTerm(matches.suffix());
+        bool isFactor = isValidFactor(matches.prefix());
         return isTerm && isFactor;
     }
 
@@ -72,17 +72,17 @@ bool checkBetweenParenthesis(string s){
 
 bool removeParenthesis(string &s){
 
-    smatch m;
+    smatch matches;
     int index = 0;
     string replacement = " temp";
 
-    while (std::regex_search(s, m, parenthesisRegex)){
+    while (std::regex_search(s, matches, parenthesisRegex)){
 
-            string xx = m[0];
+            string match = matches[0];
             
-            if (checkBetweenParenthesis(xx)){
-            string rep = replacement + to_string(index) + " ";
-            findAndReplace(s, xx, rep);
+            if (checkBetweenParenthesis(match)){
+            replacement = replacement + to_string(index) + " ";
+            findAndReplace(s, match, replacement);
             index += 1;
             }
             else return false;
@@ -92,15 +92,14 @@ bool removeParenthesis(string &s){
 
 bool isValidChoose(string s){
 
-    s = s.substr(7,s.length()-8);
-    s += ",";
+    s = s.substr(7,s.length()-8) + ",";
 
-    smatch m;
-    while (std::regex_search(s, m, commaRegex) && s.length() != 1){
+    smatch matches;
+    while (std::regex_search(s, matches, commaRegex) && s.length() != 1){
 
-        if(!isValidExpression(m.prefix()))
+        if(!isValidExpression(matches.prefix()))
             return false;
-        s = m.suffix();
+        s = matches.suffix();
 
     }
 
@@ -110,38 +109,38 @@ bool isValidChoose(string s){
 // removes syntatically correct chooses
 bool removeChoose(string &s){
 
-    smatch m;
+    smatch matches;
     int index = 0;
 
-    while (std::regex_search(s, m, chooseRegex)){
+    while (std::regex_search(s, matches, chooseRegex)){
 
-        string xx = m[0].str();
+        string match = matches[0].str();
 
         int parantval = 0;
 
-        for(int i = 0; i < xx.size(); i++){
+        for(int i = 0; i < match.size(); i++){
 
-        	if(xx[i] == '(') parantval++;
-        	else if(xx[i] == ')') parantval--;
+        	if(match[i] == '(') parantval++;
+        	else if(match[i] == ')') parantval--;
 
         }
 
-        int index = s.find(xx);
+        int index = s.find(match);
         while(parantval > 0){
-            int len = xx.length();
+            int len = match.length();
         	string temp = s.substr(index+len);
 
             int t = temp.find_first_of(")");
 
-            xx += temp.substr(0,t+1);
+            match += temp.substr(0,t+1);
             parantval -- ;
 
         }
 
-        if (isValidChoose(xx)){
+        if (isValidChoose(match)){
 
-			string rep = " tempc" + to_string(index) + " ";
-			findAndReplace(s, xx, rep);
+			string replacement = " tempc" + to_string(index) + " ";
+			findAndReplace(s, match, replacement);
 
 			index += 1;
         }
@@ -165,12 +164,12 @@ bool isValidExpression(string s){
     if (isValidTerm(s))
         return true;
 
-    smatch m;
-    bool multi = regex_search(s, m, addsubRegex);
+    smatch matches;
+    bool multi = regex_search(s, matches, addsubRegex);
 
     if (multi){
-        bool isExpression = isValidExpression(m.suffix());
-        bool isTerm = isValidTerm(m.prefix());
+        bool isExpression = isValidExpression(matches.suffix());
+        bool isTerm = isValidTerm(matches.prefix());
         return isTerm && isExpression;
     }
 
@@ -179,12 +178,13 @@ bool isValidExpression(string s){
 }
 
 bool isValidAssignment(string s){
-    smatch m;
-    bool multi = regex_search(s, m, equalsRegex);
+
+    smatch matches;
+    bool multi = regex_search(s, matches, equalsRegex);
 
     if (multi){
-        bool expr = isValidExpression(m.suffix());
-        bool var = isValidTerm(m.prefix());
+        bool expr = isValidExpression(matches.suffix());
+        bool var = isValidTerm(matches.prefix());
         return var && expr;
     }
 
@@ -195,7 +195,10 @@ bool isValidAssignment(string s){
 bool isValidWhile(string s){
 
     bool syntax = regex_match(s, whileRegex);
-    if(!syntax) return false;
+
+    if(!syntax) 
+        return false;
+    
     int beginString = s.find_first_of("(");
     int endString = s.find_last_of(")");
 

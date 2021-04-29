@@ -2,73 +2,92 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
-    
-    //TODO remove comments
-    //TODO print syntax error
-    
+int main(int argc, char *argv[]){
 
-    ifstream read(argv[1]);
-    Printer p(argv[2]);
-    int lines = 0;
-    Compiler c(p);
-    string reading;
-    while(getline(read,reading)){
-        int r = reading.find_first_of("\r");
-        if(r != -1){
-            reading = reading.substr(0 , r) ;
+    string inputName = argv[1];
+
+	ifstream fileReader(inputName);
+
+    string outputName = inputName.substr(inputName.find_last_of("/"));
+    outputName = "./myoutputs" + outputName.substr(0, outputName.length() - 2) + "ll";
+
+	Printer mylang2irPrinter(outputName);
+	int lineCounter = 0;
+	Compiler mylang2irCompiler(mylang2irPrinter);
+
+	string line;
+
+    while(getline(fileReader,line)){
+
+        int indexofBSr = line.find_first_of("\r");
+        if(indexofBSr != -1){
+            line = line.substr(0 , indexofBSr) ;
         }
-        int comment = reading.find_first_of("#");
-        if(comment != -1){
-            reading = reading.substr(0 , comment) ;
+
+        int indexofComment = line.find_first_of("#");
+        if(indexofComment != -1){
+            line = line.substr(0 , indexofComment) ;
         }
-        if(reading.empty()){
-        lines++;
-        continue;}
-        string type = getType(reading);
-        reading.erase(remove(reading.begin(), reading.end(), ' '), reading.end());
-        reading.erase(remove(reading.begin(), reading.end(), '\t'), reading.end());
-        if(reading.empty()){
-        lines++;
-        continue;}
+
+        if(line.empty()){
+        	lineCounter++;
+        	continue;
+    	}
+
+        string type = getType(line);
+
+        line.erase(remove(line.begin(), line.end(), ' '), line.end());
+        line.erase(remove(line.begin(), line.end(), '\t'), line.end());
+
+        if(line.empty()){
+        	lineCounter++;
+        	continue;
+        }
+
         if(type == "assignment"){
-            c.compileAssignment(reading);
-        }
-        if(type == "if"){
-            bool nested = c.compileIf(reading);
+
+            mylang2irCompiler.compileAssignment(line);
+
+        }else if(type == "if"){
+
+            bool nested = mylang2irCompiler.compileIf(line);
             if(!nested){
-                c.finalize(lines ,  true);
+                mylang2irCompiler.finalize(lineCounter ,  true);
                 return 0;
             }
             
-        }
-        if(type == "print"){
-            c.compilePrint(reading);
-        }
-        if(type =="while"){
-            bool nested = c.compileWhile(reading);  
-            if(!nested) {
-                c.finalize(lines , true);
+        }else if(type == "print"){
+
+            mylang2irCompiler.compilePrint(line);
+
+        }else if(type == "while"){
+
+            bool nested = mylang2irCompiler.compileWhile(line);  
+            if(!nested){
+                mylang2irCompiler.finalize(lineCounter, true);
                 return 0;
             }
-        }
-        if(type =="curv"){
-             bool syntax = c.compileCurv(reading); 
-             if(!syntax) {
-                c.finalize(lines , true);
+
+        }else if(type == "curv"){
+
+            bool syntax = mylang2irCompiler.compileCurv(line); 
+            if(!syntax){
+                mylang2irCompiler.finalize(lineCounter, true);
                 return 0;
             }  
-        }
-        if(type == "syntax error"){
-            c.finalize(lines ,  true);
+
+        }else if(type == "syntax error"){
+
+            mylang2irCompiler.finalize(lineCounter, true);
             return 0; 
             
         }
-        lines ++;
+
+        lineCounter ++;
+        
     }
 
-    c.finalize(lines-1);
+    mylang2irCompiler.finalize(lineCounter-1);
 
     return 0;
 }

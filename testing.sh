@@ -3,25 +3,25 @@ time make
 echo compilation done.
 echo testing...
 mkdir myoutputs
-time ./mylang2ir ./deliverables/inputs/testcase0.my ./myoutputs/testcase0.ll
-time ./mylang2ir ./deliverables/inputs/testcase1.my ./myoutputs/testcase1.ll
-time ./mylang2ir ./deliverables/inputs/testcase2.my ./myoutputs/testcase2.ll
-time ./mylang2ir ./deliverables/inputs/testcase3.my ./myoutputs/testcase3.ll
-time ./mylang2ir ./deliverables/inputs/testcase4.my ./myoutputs/testcase4.ll
-time ./mylang2ir ./deliverables/inputs/testcase5.my ./myoutputs/testcase5.ll
-time ./mylang2ir ./deliverables/inputs/testcase6.my ./myoutputs/testcase6.ll
-time ./mylang2ir ./deliverables/inputs/testcase7.my ./myoutputs/testcase7.ll
-time ./mylang2ir ./deliverables/inputs/testcase8.my ./myoutputs/testcase8.ll
-time ./mylang2ir ./deliverables/inputs/testcase9.my ./myoutputs/testcase9.ll
-time ./mylang2ir ./deliverables/inputs/testcase10.my ./myoutputs/testcase10.ll
-time ./mylang2ir ./deliverables/inputs/testcase11.my ./myoutputs/testcase11.ll
-time ./mylang2ir ./deliverables/inputs/testcase12.my ./myoutputs/testcase12.ll
-time ./mylang2ir ./deliverables/inputs/testcase13.my ./myoutputs/testcase13.ll
-time ./mylang2ir ./deliverables/inputs/testcase14.my ./myoutputs/testcase14.ll
-time ./mylang2ir ./deliverables/inputs/testcase15.my ./myoutputs/testcase15.ll
-time ./mylang2ir ./deliverables/inputs/testcase16.my ./myoutputs/testcase16.ll
-time ./mylang2ir ./deliverables/inputs/testcase17.my ./myoutputs/testcase17.ll
-time ./mylang2ir ./deliverables/inputs/testcase18.my ./myoutputs/testcase18.ll
+time ./mylang2ir ./deliverables/inputs/testcase0.my
+time ./mylang2ir ./deliverables/inputs/testcase1.my
+time ./mylang2ir ./deliverables/inputs/testcase2.my
+time ./mylang2ir ./deliverables/inputs/testcase3.my
+time ./mylang2ir ./deliverables/inputs/testcase4.my
+time ./mylang2ir ./deliverables/inputs/testcase5.my
+time ./mylang2ir ./deliverables/inputs/testcase6.my
+time ./mylang2ir ./deliverables/inputs/testcase7.my
+time ./mylang2ir ./deliverables/inputs/testcase8.my
+time ./mylang2ir ./deliverables/inputs/testcase9.my
+time ./mylang2ir ./deliverables/inputs/testcase10.my
+time ./mylang2ir ./deliverables/inputs/testcase11.my
+time ./mylang2ir ./deliverables/inputs/testcase12.my
+time ./mylang2ir ./deliverables/inputs/testcase13.my
+time ./mylang2ir ./deliverables/inputs/testcase14.my
+time ./mylang2ir ./deliverables/inputs/testcase15.my
+time ./mylang2ir ./deliverables/inputs/testcase16.my
+time ./mylang2ir ./deliverables/inputs/testcase17.my
+time ./mylang2ir ./deliverables/inputs/testcase18.my
 
 echo output0:
 lli ./myoutputs/testcase0.ll
