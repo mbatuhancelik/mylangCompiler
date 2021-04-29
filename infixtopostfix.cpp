@@ -1,27 +1,5 @@
 #include "infixtopostfix.h"
 
-void printstack(stack<int> myStack){
-
-	stack<int> sec;
-
-	while(!myStack.empty()){
-
-		sec.push(myStack.top());
-
-		myStack.pop();
-
-	}
-
-	while(!sec.empty()){
-
-		cout << (char)sec.top();
-
-		sec.pop();
-
-	}
-
-}
-
 int operatorprecedence(char op){
 
 	if(op == '+' || op == '-'){
