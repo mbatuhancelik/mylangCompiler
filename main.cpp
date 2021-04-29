@@ -11,8 +11,7 @@ int main(int argc, char *argv[]){
 	ifstream fileReader(inputName); // reading the input file
 
     //name of the output file
-    string outputName = inputName.substr(inputName.find_last_of("/")); 
-    outputName = outputName.substr(0, outputName.length() - 2) + "ll";
+    string outputName = inputName.substr(0, inputName.length() - 2) + "ll";
 
     //printer object, an interface to output file
 	Printer mylang2irPrinter(outputName);
