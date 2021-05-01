@@ -178,47 +178,61 @@ bool removeChoose(string &s){
 
 			index += 1;
         }
-
+        // if the choose function is not valid, return false
         else return false;
 
     }
-
+    //when all choose functions are replaced, return true
     return true;
 
 }
 
+//checks for if given string is a valid expression
 bool isValidExpression(string s){
 
+    //remove choose functions
+    //if one of them is not valid, return false
     bool validChoose = removeChoose(s);
     if(!validChoose) return false;
-
+    //remove parenthesis
+    //if any expression in parenthesis is invalid, return false
     bool validParenthesis = removeParenthesis(s);
     if(!validParenthesis) return false;
-
+    
+    //checks if the string is a valid term
+    //If it is, returns true 
     if (isValidTerm(s))
         return true;
 
     smatch matches;
+    //searches for + or - tokens in the string
     bool multi = regex_search(s, matches, addsubRegex);
-
+    //if these tokens exists
     if (multi){
+        // true if right hand side is an expression
         bool isExpression = isValidExpression(matches.suffix());
+        // true if left hand side is an term
         bool isTerm = isValidTerm(matches.prefix());
+        //return end of the results
         return isTerm && isExpression;
     }
-
+    //otherwise return false
     return false;
 
 }
 
+//checks for if given string is a valid assignment statement
 bool isValidAssignment(string s){
 
     smatch matches;
+    //finds = token in the string
     bool multi = regex_search(s, matches, equalsRegex);
-
+    //if it is found
     if (multi){
+        //checks if right hand side is an expression
         bool expr = isValidExpression(matches.suffix());
-        bool var = isValidTerm(matches.prefix());
+        //checks if left hand side is an variable
+        bool var = isValidVariable(matches.prefix());
         return var && expr;
     }
 
