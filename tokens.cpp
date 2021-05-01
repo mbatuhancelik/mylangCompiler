@@ -101,8 +101,8 @@ bool removeParenthesis(string &expr){
             string match = matches[0]; //locate inermost parenthesis
             
             if (checkBetweenParenthesis(match)){ //if the expression within is valid
-            replacement = replacement + to_string(index) + " "; //create a temp variable 
-            findAndReplace(expr, match, replacement); //replace the innermost parenthesis with the temp variable
+            string tempVar = replacement + to_string(index) + " "; //create a temp variable 
+            findAndReplace(expr, match, tempVar); //replace the innermost parenthesis with the temp variable
             index += 1;
             }
             else return false; // if all parenthesis could not be replaced, return false
