@@ -2,7 +2,7 @@
 
 using namespace std;
 regex choosePointerRegex("choose_pointer[0-9]+");
-extern regex chooseRegex; //regex that specifies choose functions
+regex chooseRegexforCompiler("choose\\s{0,}\\((((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()_])*,){3,3}((?!choose\\()[_a-zA-Z0-9+\\*\\-\\/\\s()])*?\\)");; //regex that specifies choose functions
 //initializes variableCount
 Compiler::Compiler (Printer &p):p{p}{
 
@@ -238,7 +238,7 @@ void Compiler::replaceChoose(string &exp){
 
     smatch matches;
 
-    while (regex_search(exp, matches, chooseRegex)){ // while there are choose functions in expression
+    while (regex_search(exp, matches, chooseRegexforCompiler)){ // while there are choose functions in expression
 
         string chooseMatch = matches[0].str(); //choose function substring
 
