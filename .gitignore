@@ -34,3 +34,6 @@
 #llvm and my files
 *.ll
 *.my
+
+#ignore executable
+mylang2ir
