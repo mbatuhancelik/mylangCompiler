@@ -1,7 +1,7 @@
 #include "compiler.h"
 
 using namespace std;
-
+regex choosePointerRegex("choose_pointer[0-9]+");
 extern regex chooseRegex; //regex that specifies choose functions
 //initializes variableCount
 Compiler::Compiler (Printer &p):p{p}{
@@ -119,7 +119,7 @@ string Compiler::compileExpression(string exp){
             // if token is a valid variable, its a mylang variable
             //loads its pointer to a temp var and stores it in stack
             // otherwise token is an temporary llvm variable
-            if(isValidVariable(token))
+            if(isValidVariable(token)|| regex_match(token , choosePointerRegex))
                 var.push(loadPoint(token));
             else
                 var.push(token);

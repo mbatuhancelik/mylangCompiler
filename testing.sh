@@ -25,7 +25,11 @@ do
 echo " "
 echo " checking $counter"
 echo " "
-diff ./deliverables/outputs/testcase$counter.txt ./llvmoutputs/output$counter
+echo "expected output"
+cat ./deliverables/outputs/testcase$counter.txt
+echo ""
+echo "your output" 
+cat ./llvmoutputs/output$counter
 done
 
 
