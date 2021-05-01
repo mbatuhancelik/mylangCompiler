@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+#llvm and my files
+*.ll
+*.my
