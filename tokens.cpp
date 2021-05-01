@@ -13,7 +13,7 @@ regex equalsRegex("=");//regex expression that defines equals sign
 regex whileRegex("\\s{0,}while\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");//regex expression that defines while statements
 regex ifRegex("\\s{0,}if\\s{0,}(\\(.{1,}\\))\\s{0,}\\{\\s{0,}");//regex expression that defines if statements
 regex printRegex("\\s{0,}print\\s{0,}(\\(.{1,}\\))\\s{0,}");//regex expression that defines print statements
-regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}"); //regex expression that defines closed curved parenthesis statements
+regex closeCurvedParanRegex("\\s{0,}\\}\\s{0,}"); //regex expression that defines closing curved parenthesis statements
 //hideous regex expression that defines choose functions
 regex chooseRegex("choose\\s{0,}\\((((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*,){3,3}((?!choose\\()[a-zA-Z0-9+\\*\\-\\/\\s()])*?\\)");
 regex commaRegex(","); //regex expression that defines a comma
@@ -233,54 +233,67 @@ bool isValidAssignment(string s){
         bool expr = isValidExpression(matches.suffix());
         //checks if left hand side is an variable
         bool var = isValidVariable(matches.prefix());
+        //returns end of the results above
         return var && expr;
     }
-
+    // returns false otherwise
     return false;
 
 }
 
+//checks for if given string is a valid while statement
 bool isValidWhile(string s){
-
+    //true if string matches the regex
     bool syntax = regex_match(s, whileRegex);
-
+    //if does not match, return false
     if(!syntax) 
         return false;
-    
+    //find the index range that store expression
     int beginString = s.find_first_of("(");
     int endString = s.find_last_of(")");
-
+    // return true if expression within parenthesis is valid
     return isValidExpression(s.substr(beginString+1, endString - beginString -1));
 
 }
 
+//checks for if given string is a valid if statement
 bool isValidIf(string s){
-
+    //true if string matches the regex
     bool syntax = regex_match(s, ifRegex);
-    if(!syntax) return false;
+    //if does not match, return false
+    if(!syntax) 
+        return false;
+    //find the index range that store expression
     int beginString = s.find_first_of("(");
     int endString = s.find_last_of(")");
-
+    // return true if expression within parenthesis is valid
     return isValidExpression(s.substr(beginString+1, endString - beginString -1));
 
 }
 
+//checks for if given string is a closing curving parenthesis
 bool isCurvParanClose(string s){
-
+    // return true if s matches the regex
     return regex_match(s, closeCurvedParanRegex);
 
 }
-
+//checks for if given string is a valid print statement
 bool isValidPrint(string s){
-
+    //true if string matches the regex
     bool syntax = regex_match(s,printRegex);
-    if(!syntax) return false;
+    //if does not match, return false
+    if(!syntax) 
+        return false;
+
+    //find the index range that store expression
     int beginString = s.find_first_of("(");
     int endString = s.find_last_of(")");
+    // return true if expression within parenthesis is valid
     return isValidExpression(s.substr(beginString+1, endString - beginString -1));
 
 }
 
+// returns the type of the given string
 string getType(string s){
 
     if(isCurvParanClose(s)) return "curv";
