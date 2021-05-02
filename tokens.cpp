@@ -22,6 +22,9 @@ bool isValidExpression(string s); // declare isValidExpression
 
 //checks if a variable is valir
 bool isValidVariable(string s){
+    //returns false if the variable name is a keyword
+    if(s == "choose" || s == "if" || s == "while" || s == "print")
+        return false;
     //returns if the variable matches the variable regex
     return regex_match(s, varRegex);
 
