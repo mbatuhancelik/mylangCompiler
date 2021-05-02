@@ -1,5 +1,6 @@
 #include "infixtopostfix.h"
 
+// returns 1 for + or -, returns 2 for * or /, returns 0 for neither
 int operatorprecedence(char op){
 
 	if(op == '+' || op == '-'){
@@ -16,19 +17,18 @@ int operatorprecedence(char op){
 
 }
 
+//Well known infix to postfix algorithm
 string infixtopostfix(string expression){
-
+	
 	expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
 
 	stack<int> myStack;
-
+	
 	string newexpression = "";
-
+	
 	int lastopindex = -1;
 
 	for(int i = 0; i < expression.size(); i++){
-
-		//cout << expression[i] << "\t\t";
 
 		if(expression[i] == '(' || expression[i] == ')' || expression[i] == '+'
 			|| expression[i] == '-' || expression[i] == '*' || expression[i] == '/'){
